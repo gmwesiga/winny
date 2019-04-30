@@ -1,0 +1,30 @@
+#ifndef IEXTEVENTSOURCE_H
+#define IEXTEVENTSOURCE_H
+
+#include "IApplication.h" //Requires application.handle();
+
+namespace StdSystem {
+
+    class IExtEventSource{
+        public:
+        void Attach(IApplication* app);
+        void Dettach();
+        virtual void run()=0;
+        
+        protected:
+        IExtEventSource();
+        /*We want IEXtEventSource to solely be responsible for
+         *calling the EventHandler application, and not Concrete 
+         *Implementers. Instead concrete Implementors call base notify()
+         *for this reason, the handle to the EventHandler is private
+         */
+        void notify(sEvent e);
+
+        private:
+        //No need for distructor for data. It belongs to client;
+        
+        //data
+        IApplication* application;
+    };
+}
+#endif
