@@ -1,4 +1,5 @@
 #include "IExtEventSource.h"
+//#include <FL/fl_ask.H>
 
 using namespace StdSystem;
 
@@ -11,13 +12,13 @@ IExtEventSource::IExtEventSource():application(0){};
  *function to subscribe an iapplication to an ieventsource controller's events
  */
 void IExtEventSource::Attach(IApplication* app){
-    this->application = app;
+    application = app;
 };
 
 
 /*clients can call detach to unsubscribe an IApplication from ieventsource's events*/
  void IExtEventSource::Dettach(){
-     this->application = 0;
+     application = 0;
  };
 
 
@@ -26,7 +27,10 @@ void IExtEventSource::Attach(IApplication* app){
   *application. so they must call notify(sEvent), to publish their events
   *to subscribers.
   */
-  void IExtEventSource::notify(sEvent e){
-      if (this->application)
-        this->application->handle(e);
+  void IExtEventSource::notify(sEvent e, void *eData){
+      
+      if (this->application) //fl_alert("in IxtEventSource::notify, application set");
+      //return;
+        this->application->handle(e,eData);
+
   };

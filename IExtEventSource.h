@@ -7,7 +7,7 @@ namespace StdSystem {
 
     class IExtEventSource{
         public:
-        void Attach(IApplication* app);
+        virtual void Attach(IApplication* app);
         void Dettach();
         virtual void run()=0;
         
@@ -18,7 +18,7 @@ namespace StdSystem {
          *Implementers. Instead concrete Implementors call base notify()
          *for this reason, the handle to the EventHandler is private
          */
-        void notify(sEvent e);
+        void notify(sEvent e, void *eData=nullptr);
 
         private:
         //No need for distructor for data. It belongs to client;
@@ -26,5 +26,10 @@ namespace StdSystem {
         //data
         IApplication* application;
     };
+#define CmdNavigateTo          0 //0-49 reserved for client related events live navigation
+#define CmdFilterProductsList  50
+#define CmdDeactivateProduct   51
+#define CmdEditProductDetails  52
+#define CmdsearchProduct       53
 }
 #endif

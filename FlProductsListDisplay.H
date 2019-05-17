@@ -10,8 +10,16 @@
 #include <FL/Fl_Box.H>
 #include <dataset_view.h>
 
-
-class FlProductsListDisplay : public IProductsListDisplay , public Fl_Group, public StdSystem::IExtEventSource {
+/*Is both Input and Output Class as itImplements IProductsListDisplay -
+ *an output class and IEXtEvents a command input class
+ *Events / commands Inputs from this class are
+ *  - CmdNavigateTo CreateProduct
+ *  - CmdFilterProductsList...
+ *  - CmdDeactivateProduct ...
+ *  - CmdEditProductDetails ...
+ *  - CmdsearchProduct ...
+ */
+class FlProductsListDisplay : public IProductsListDisplay , public Fl_Group{
     public:
     FlProductsListDisplay();
     void show();
@@ -24,6 +32,8 @@ class FlProductsListDisplay : public IProductsListDisplay , public Fl_Group, pub
     void addToshowList(Product); 
     void clearShowList();
     string selected();
+    UIname id();
+  //  void raiseEvent(StdSystem::sEvent e, void *eData=nullptr);
     void run(){return;};
 
     private:

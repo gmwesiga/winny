@@ -1,13 +1,15 @@
 #include <FlCreateProductDisplay.H>
 #include <FWidgetSizes.H>
 #include <winny_theme.h>
+#include <WinnyNames.H>
 
+static const UIname PAGENAME(NAME_CREATE_PRODUCT_SCREEN); 
 
 FlCreateProductDisplay::FlCreateProductDisplay(Fl_Widget *w)
     :Fl_Group(MENUBAR_AREA.X,MENUBAR_AREA.Y, MENUBAR_AREA.W,MENUBAR_AREA.H+CONTENT_AREA2.H){
 
     box(WINNY_TOP_BORDERBOX);
-    label("Create New Product");
+    label(PAGENAME.c_str());
     labelcolor(WINNY_MAINTITLETEXT_COLOR);
     align(FL_ALIGN_TOP_LEFT);
     labelsize(WINNY_TITLETEXT_FONTSIZE);
@@ -63,4 +65,18 @@ FlCreateProductDisplay::FlCreateProductDisplay(Fl_Widget *w)
     resizer = new Fl_Box(680,580,140,1);
     resizable(resizer);
     end();
-}
+};
+
+void FlCreateProductDisplay::show(){
+    Fl_Group::show();
+};
+void FlCreateProductDisplay::hide(){
+    Fl_Group::hide();
+};
+void FlCreateProductDisplay::update(){
+    Fl_Group::redraw();
+};  
+
+UIname FlCreateProductDisplay::id(){
+    return PAGENAME;
+};

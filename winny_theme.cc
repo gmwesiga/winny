@@ -119,7 +119,8 @@ void set_winny_group_theme(Fl_Group*w){
 };
 
 void set_winny_scroll_theme (Fl_Scroll *w){
-  w->scrollbar.slider(WINNY_THICK_BORDERBOX);
+  w->scrollbar.slider(WINNY_THIN_BORDERFRAME);
   w->scrollbar.color(fl_rgb_color(241,241,249));//very pale blue
-  w->hscrollbar.slider(WINNY_THICK_BORDERBOX);
-}
+  w->hscrollbar.slider(WINNY_THINDOWN_BORDERBOX);
+  //w->scrollbar.slider.color(fl_rgb_color(241,241,249));
+};

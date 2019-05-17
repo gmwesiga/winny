@@ -2,6 +2,7 @@
 #define CREATECONTACTTDISPLAY_H
 
 //#include <IExtEventSource.h>
+#include<IUserInterface.h>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Widget.H>
 #include <FL/Fl_Button.H>
@@ -13,6 +14,7 @@
 class FlCreateContactDisplay : public Fl_Group {
     public:
     FlCreateContactDisplay();//pass window;
+    UIname id();
 
     private:
     Fl_Input *cName, 

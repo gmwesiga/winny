@@ -7,7 +7,7 @@ namespace StdSystem {
 
     class IApplication {
         public:
-        virtual int handle(sEvent)=0;
+        virtual int handle(sEvent,void *eData)=0;
     };//end of IEventHandler
 
 

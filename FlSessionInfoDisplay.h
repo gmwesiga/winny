@@ -13,10 +13,11 @@ class FlSessionInfoDisplay : public Fl_Group, public ISessionInfoDisplay {
     void show();
     void hide();
     void update();
+    UIname id();
 
     private:
-    Fl_Output* id;
-    ~FlSessionInfoDisplay(){ delete id;};
+    Fl_Output* _id;
+    ~FlSessionInfoDisplay(){ delete _id;};
 };
 
 #endif

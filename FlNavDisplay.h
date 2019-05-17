@@ -10,6 +10,7 @@
 class FlNavDisplay : public Fl_Group, public INavDisplay {
     public:
     FlNavDisplay();
+    UIname id(){return "winny_1234ffdfg";};
     void show();
     void hide();
     void update();

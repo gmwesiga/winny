@@ -3,6 +3,7 @@
 
 //#include <IContactsListDisplay.H>
 //#include <IExtEventSource.h>
+#include<IUserInterface.h>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Input.H>
@@ -11,9 +12,13 @@
 #include <dataset_view.h>
 
 
-class FlContactsListDisplay :  public Fl_Group {
+class FlContactsListDisplay :  public Fl_Group, public IUserInterface {
     public:
     FlContactsListDisplay();
+    UIname id();
+    void show();
+    void hide();
+    void update();
 
     private:
     Fl_Group       *menuBar;

@@ -43,5 +43,9 @@ const FwSizes LCLNAV_AREA2 = {
     (int)(((float)432/DESIGNSH)*SCRN_HEIGHT)
     };
 
-
+const FwSizes NOTFCN_AREA = {
+    355,SCRN_HEIGHT-73,
+    (int)(((float)466/DESIGNSW)* SCRN_WIDTH),
+    70
+};
 #endif

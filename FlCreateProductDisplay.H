@@ -10,10 +10,15 @@
 #include <FL/Fl_Menu_Button.H>
 #include <FL/Fl_Box.H>
 #include <dataset_view.h>
+#include <IUserInterface.h>
 
-class FlCreateProductDisplay : public Fl_Group {
+class FlCreateProductDisplay : public Fl_Group , public IUserInterface{
     public:
     FlCreateProductDisplay(Fl_Widget* w);//pass window;
+    void show();
+    void hide();
+    void update();   
+    UIname id();
 
     private:
     Fl_Input *prodName, 

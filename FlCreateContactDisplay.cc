@@ -1,9 +1,10 @@
 #include<FlCreateContactDisplay.H>
 #include <FWidgetSizes.H>
 #include <winny_theme.h>
+#include <WinnyNames.H>
 
 FlCreateContactDisplay::FlCreateContactDisplay()
-:Fl_Group(MENUBAR_AREA.X,MENUBAR_AREA.Y, MENUBAR_AREA.W,MENUBAR_AREA.H+CONTENT_AREA2.H,"Create New Contact")
+:Fl_Group(MENUBAR_AREA.X,MENUBAR_AREA.Y, MENUBAR_AREA.W,MENUBAR_AREA.H+CONTENT_AREA2.H,NAME_CREATE_CONTACT_SCREEN)
 {
     box(WINNY_TOP_BORDERBOX);
     align(FL_ALIGN_TOP_LEFT);

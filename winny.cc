@@ -1,21 +1,25 @@
 #include "IScreen.h"
 #include "IExtEventSource.h"
 #include "FlScreen.h"
+#include <Application.H>
+
 //#include "FltkFactory.h"
 
-IScreen* screen;
-//IApplication winnyApp;
+FlScreen* screen;
+Application* APP;
 IExtEventSource* eventSource;
 
 void initialiseSystem(){
-//    screen      = new fltkFactory.createScreen();
     FlScreen* scrn = new FlScreen();
     screen =  scrn;
-    eventSource = scrn;    
-//    winnyApp    = new WinnyApplication;
-    
-//    eventSource->attach(winnyApp);
+
+    eventSource = screen;    
     screen->show();
+    APP = new Application();
+    screen->Attach(APP);
+    //screen->productsListDisplay()->Attach(APP);
+
+    APP->uiScreen(scrn);
     eventSource->run();
 };
 
