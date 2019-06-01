@@ -14,7 +14,7 @@
 
 class FlCreateProductDisplay : public Fl_Group , public IUserInterface{
     public:
-    FlCreateProductDisplay(Fl_Widget* w);//pass window;
+    FlCreateProductDisplay(int x, int y, int w, int h);//pass window;
     void show();
     void hide();
     void update();   

@@ -7,6 +7,8 @@
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Scroll.H>
 
+//To do.. new design
+//all definitions to use #define macro
 //widget themes
 inline Fl_Color WGT_COLOR_DOM(){return fl_rgb_color(252,252,252);};//same as below
 inline Fl_Color DOMWGT_COLOR(){return fl_rgb_color(252,252,252);};//light gray 
@@ -19,22 +21,22 @@ inline Fl_Color ACCWGT_COLOR(){return fl_rgb_color(110,153,255);};//grey blue
 #define WINNY_BUTTON_COLOR fl_rgb_color(233,233,233)
 
 //font themes;
-inline Fl_Color FONT_COLOR_DOM() { return fl_rgb_color(102,102,102);} //dark gray
+//inline Fl_Color FONT_COLOR_DOM() { return fl_rgb_color(102,102,102);} //dark gray
 inline Fl_Fontsize DOMFONT_SIZE() {return 12;};   
 inline Fl_Color DOMFONT_COLOR() { return fl_rgb_color(59,59,59);}//dark drk gray
-inline Fl_Color ACCFONT_COLOR(){return fl_rgb_color(153,0,0);}; //maron red
-inline Fl_Color ACCFONT_COLOR2(){return fl_rgb_color(67,67,255);}; //vibrant blue
+inline Fl_Color ACCFONT_COLOR(){return fl_rgb_color(61, 122, 184);};
+inline Fl_Color ACCFONT_COLOR2(){return fl_rgb_color(204, 102, 0);}; 
 
 #define DOMFONTCOLOR DOMFONT_COLOR()
 #define ACCFONTCOLOR ACCFONT_COLOR() 
 #define ACCFONTCOLOR2 ACCFONT_COLOR2()
 
 //more specific aliases for font color
-#define WINNY_LINKTEXT_COLOR ACCFONT_COLOR2()
+#define WINNY_LINKTEXT_COLOR ACCFONT_COLOR()
 #define WINNY_NORMALTEXT_COLOR DOMFONT_COLOR()
-#define WINNY_MAINTITLETEXT_COLOR  ACCFONT_COLOR()
-#define WINNY_TITLETEXT_COLOR ACCFONT_COLOR2()
-#define WINNY_SUBTITLETEXT_COLOR DOMFONT_COLOR()
+#define WINNY_MAINTITLETEXT_COLOR  fl_rgb_color(148, 185, 222)
+#define WINNY_TITLETEXT_COLOR ACCFONT_COLOR()
+#define WINNY_SUBTITLETEXT_COLOR DOMFONT_COLOR2()
 
 #define WINNY_NORMALFONT FL_HELVETICA
 #define WINNY_BOLDFONT  FL_HELVETICA_BOLD
@@ -45,12 +47,12 @@ inline Fl_Color ACCFONT_COLOR2(){return fl_rgb_color(67,67,255);}; //vibrant blu
 
 
 //Selection
- inline Fl_Color SELECTION_BACKCOLOR() {return fl_rgb_color(197,222,252);}//white blue
+ inline Fl_Color SELECTION_BACKCOLOR() {return fl_rgb_color(238,238,246);}//white blue (197,222,252)
  inline Fl_Color SELECTION_BACKCOLOR2() {return fl_rgb_color(242,247,253);}
  inline Fl_Color SELECTION_BORDERCOLOR() {return fl_rgb_color(125,162,206);}
  
 //window
-inline Fl_Color WINDOW_COLOR(){return fl_rgb_color(249,249,249);} 
+inline Fl_Color WINDOW_COLOR(){return fl_rgb_color(247, 247, 247);} 
 
 
 //main menue:

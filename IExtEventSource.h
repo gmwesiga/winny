@@ -27,6 +27,7 @@ namespace StdSystem {
         IApplication* application;
     };
 #define CmdNavigateTo          0 //0-49 reserved for client related events live navigation
+#define SigUserIOready         1
 #define CmdFilterProductsList  50
 #define CmdDeactivateProduct   51
 #define CmdEditProductDetails  52

@@ -14,12 +14,11 @@ void initialiseSystem(){
     screen =  scrn;
 
     eventSource = screen;    
-    screen->show();
     APP = new Application();
     screen->Attach(APP);
-    //screen->productsListDisplay()->Attach(APP);
-
     APP->uiScreen(scrn);
+
+    screen->show(); //show after completing setup
     eventSource->run();
 };
 

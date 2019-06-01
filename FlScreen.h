@@ -12,8 +12,12 @@
 #include <FlNotificationDisplay.H>
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
-#include <FL/Fl_Box.H>
-#include <map>
+#include <FL/Fl_Box.H>/*for labels and backgrounds*/
+#include <FL/Fl_Button.H> /*For signout buttons*/
+#include <FL/Fl_PNG_Image.H>/*For a menu icon*/
+#include <FL/Fl_Tree.H>/*For local navigation*/
+#include <map>/*dictionary of function screen pointers*/
+#include <IApplicationTypes.H>//UIODNames for bind
 
 using namespace StdSystem;
 
@@ -25,29 +29,64 @@ class FlScreen : public IScreen, public Fl_Double_Window{
     const ISessionInfoDisplay* sessionInfoDisplay();
     const INavDisplay* navDisplay();
     void log(string msg);
-    void showfDisplay(UIname sn);
+
+    void switchToDisplay(Winny::UserIODevName sn); 
+    /*if no pending prompts, switch to screen named sn*/
+    
     UIname id(){return "FlWindow";};
     void run();
     void show();
     void hide();
+   // int handle(int e);//override so we can tap the Show/ load event
     void update();
     void Attach(StdSystem::IApplication* app);
+    void writeBuffer(void *buff);
 
     private:
-    ISessionInfoDisplay* sessionInfo;
-    INavDisplay*         navBar;
-    IProductsListDisplay* prodList;
+    IUserInterface* constructDisplay(Winny::UserIODevName n);
+    /*Returns right IUserInterface that implements name n, null pointer on failur*/
 
-    FlLocalNavDisplay*   lnavBar;
-    FlCreateProductDisplay* creatProductTab;
+    void setUpRole(Winny::Role o);
+    /*Create appropriate Windows etc*/
+
+
+    int bind(IUserInterface* dev,Winny::UserIODevName devId);
+
+    IUserInterface* resolve(Winny::UserIODevName devId);
+    /*Return address/ value of screen Binded to devId or construct
+    / it and bind if not exists. on failure, return null pointer*/
+
+    void addTomenu(IUserInterface* dev,Winny::UserIODevName devId);
+    /*Add dev->id to menu*/
+
     Fl_Box* scrnResizer;
+    Fl_Box* titleBgBox;
+    Fl_Box* navTitleBgBox;
+    Fl_Box* logo;
+    Fl_Box* titlebox;
+    Fl_Tree* localNav;
+
+    Fl_Menu_Button* switchShopBtn;
+    Fl_Button* logOutBtn;
+    Fl_Box* shopNameLbl;
+    Fl_PNG_Image* _menuicon_;
+    Fl_Menu_Button* menuicon;
+
     FlContactsListDisplay *contactsList;
     FlCreateContactDisplay *creatContactTab;
     FlNotificationDisplay *msgs;
 
     IUserInterface* current;
+    /*address of currently displayed screen. pointer points to element in 
+     *the displays map*/
 
-    std::map<std::string,IUserInterface*> displays;
+    std::map<Winny::UserIODevName,IUserInterface*> displays;
+    /*dictonary/list of all screens currently created in memory*/
+
+    std::vector<Winny::UserIODevName *> menus;
+    /*Stores Winny::UserIODevName of currently created screens*/
+
+    IApplication* _app_;
 };
 
 #endif

@@ -70,10 +70,10 @@ void init_ui(void){
 
 void set_winny_input_theme(Fl_Input_*w){
     w->color(DOMWGT_COLOR());
-    w->labelcolor(DOMFONT_COLOR()); 
-    w->textcolor(DOMFONT_COLOR()); //text color;
-    w->labelsize(DOMFONT_SIZE()); 
-    w->textsize(DOMFONT_SIZE());   //text size
+    w->labelcolor(WINNY_NORMALTEXT_COLOR); 
+    w->textcolor(WINNY_NORMALTEXT_COLOR); //text color;
+    w->labelsize(WINNY_NORMALTEXT_FONTSIZE); 
+    w->textsize(WINNY_NORMALTEXT_FONTSIZE);   //text size
     w->box(WINNY_THIN_BORDERBOX);
     w->align(FL_ALIGN_TOP_LEFT);
 };
@@ -102,18 +102,18 @@ void set_winny_window_theme(Fl_Widget*w){
 
 void set_winny_button_theme(Fl_Widget*w){
     w->color(fl_rgb_color(233,233,233));//grey color for all buttons
-    w->labelcolor(DOMFONT_COLOR()); 
+    w->labelcolor(WINNY_NORMALTEXT_COLOR); 
     //w->textcolor(DOMFONT_COLOR()); //text color;
-    w->labelsize(DOMFONT_SIZE()); 
+    w->labelsize(WINNY_NORMALTEXT_FONTSIZE); 
     //w->textsize(DOMFONT_SIZE());   //text size
     w->box(WINNY_THIN_BORDERBOX);
 };
 
 void set_winny_group_theme(Fl_Group*w){
     w->color(WINDOW_COLOR());
-    w->labelcolor(DOMFONT_COLOR()); 
+    w->labelcolor(WINNY_NORMALTEXT_COLOR); 
     //w->textcolor(DOMFONT_COLOR()); //text color;
-    w->labelsize(DOMFONT_SIZE()); 
+    w->labelsize(WINNY_NORMALTEXT_FONTSIZE); 
     //w->textsize(DOMFONT_SIZE());   //text size
     w->box(WINNY_THIN_BORDERBOX);
 };

@@ -5,7 +5,7 @@
 #include <vector>
 #include <fstream>
 #include <map>
-#include "gmdataset.h"
+//#include "gmdataset.h"
 
 using std::map;
 using std::string;
@@ -124,5 +124,5 @@ class Product_Table {
   
   vector<Component> loadItems_to_components(vector<load_item> loaditems);
 
-  void productTable_to_dataset(Product_Table & tb, dataset& ds);
+ // void productTable_to_dataset(Product_Table & tb, dataset& ds);
  #endif

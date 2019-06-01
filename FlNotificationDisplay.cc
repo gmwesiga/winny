@@ -7,20 +7,20 @@
 static void closeSelf(void* data);
 static void showSelf(void* data);
 static void cb ( Fl_Widget* w, void* o);
-static const int MINHGHT = 23;
+static const int MINHGHT = 7/*23*/;
 
 #define MAXLINES 10
 static const char LABEL[] = "";
 
 FlNotificationDisplay::FlNotificationDisplay()
-:Fl_Group(NOTFCN_AREA.X,NOTFCN_AREA.Y,NOTFCN_AREA.W,NOTFCN_AREA.H){
+:Fl_Group(NOTFCN_AREA.X,NOTFCN_AREA.Y,NOTFCN_AREA.W,MINHGHT){
     begin();
     box(WINNY_THIN_BORDERBOX);
     color(WINNY_BUTTON_COLOR);
-    int xoffset =6;
-    int yoffset =xoffset+2; //normally equal to MINHGHT
-    view = new Fl_Hold_Browser(NOTFCN_AREA.X+xoffset,NOTFCN_AREA.Y+yoffset,
-        NOTFCN_AREA.W-xoffset*2,NOTFCN_AREA.H-yoffset-xoffset,LABEL);
+    int xoffset =1;
+    int yoffset =xoffset; //normally equal to MINHGHT
+    view = new Fl_Hold_Browser(NOTFCN_AREA.X+xoffset,NOTFCN_AREA.Y+xoffset,
+        NOTFCN_AREA.W-xoffset*2,MINHGHT,LABEL);
     view->box(WINNY_THIN_BORDERBOX);
     view->color(FL_WHITE);
     view->scrollbar.type(FL_VERT_NICE_SLIDER);
@@ -39,7 +39,7 @@ FlNotificationDisplay::FlNotificationDisplay()
 int FlNotificationDisplay::handle(int e){
     int ret = Fl_Group::handle(e);
     //we want to capture the mouse move events
-    switch ( e)
+    switch (e)
     {
         case FL_ENTER:
             restore();
@@ -49,9 +49,10 @@ int FlNotificationDisplay::handle(int e){
         default:
             break;
     }
+    return ret;
 }
 
-static int CLOSED = 0;//initially OPEN (see constructor);
+static int CLOSED = 1;//initially OPEN (see constructor);
 
 
 void FlNotificationDisplay::add(std::string message){
@@ -87,7 +88,7 @@ static void closeSelf(void* data){
         vw->x(),vw->y()+1,
         vw->w(),vw->h()-1);
     vw->parent()->damage(FL_DAMAGE_CHILD);
-    vw->damage(FL_DAMAGE_ALL,NOTFCN_AREA.X,NOTFCN_AREA.Y, NOTFCN_AREA.W,NOTFCN_AREA.H);
+    //vw->damage(FL_DAMAGE_ALL,NOTFCN_AREA.X,NOTFCN_AREA.Y, NOTFCN_AREA.W,NOTFCN_AREA.H);
     vw->parent()->redraw();
     Fl::repeat_timeout(0.005,closeSelf,(void*)vw);
 };
@@ -106,7 +107,7 @@ static void showSelf(void* data){
         vw->w(),
         vw->h()+1);
     vw->parent()->damage(FL_DAMAGE_CHILD);
-    vw->damage(FL_DAMAGE_ALL,NOTFCN_AREA.X,NOTFCN_AREA.Y, NOTFCN_AREA.W,NOTFCN_AREA.H);
+    //vw->damage(FL_DAMAGE_ALL,NOTFCN_AREA.X,NOTFCN_AREA.Y, NOTFCN_AREA.W,NOTFCN_AREA.H);
     vw->parent()->redraw();
     Fl::repeat_timeout(0.005,showSelf,(void*)vw);
 };

@@ -18,6 +18,17 @@
  *  - CmdDeactivateProduct ...
  *  - CmdEditProductDetails ...
  *  - CmdsearchProduct ...
+ * Inputs: filter of products to list
+ * Outputs List of products matching filter
+ * 
+ * inputs: searchkey 
+ * Outputs:List of all products with a property matching search Key
+ * 
+ * Inputs: (product selected from output list) and any command (edit 
+ * deactivate) 
+ * output: perform action and report action feedback
+ * 
+ * 
  */
 class FlProductsListDisplay : public IProductsListDisplay , public Fl_Group{
     public:
@@ -32,6 +43,8 @@ class FlProductsListDisplay : public IProductsListDisplay , public Fl_Group{
     void addToshowList(Product); 
     void clearShowList();
     string selected();
+    void readBuffer(void* buff);//filter to products list
+    void writeBuffer(void* buff);//matches
     UIname id();
   //  void raiseEvent(StdSystem::sEvent e, void *eData=nullptr);
     void run(){return;};

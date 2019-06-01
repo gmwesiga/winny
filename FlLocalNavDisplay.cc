@@ -11,7 +11,7 @@ FlLocalNavDisplay::FlLocalNavDisplay():
     Fl_Tree(LCLNAV_AREA2.X,LCLNAV_AREA2.Y,LCLNAV_AREA2.W,LCLNAV_AREA2.H,"Administrator")
 {
     align(FL_ALIGN_TOP_LEFT);
-    labelcolor(WINNY_TITLETEXT_COLOR);
+    labelcolor(FL_WHITE);
     labelsize(WINNY_TITLETEXT_FONTSIZE);
     labelfont(WINNY_BOLDFONT);
     showroot(0); //remove it
@@ -21,12 +21,13 @@ FlLocalNavDisplay::FlLocalNavDisplay():
     linespacing(5);
     selection_color(SELECTION_BACKCOLOR());
     marginleft(10);
+    selectbox(WINNY_THIN_BORDERBOX);
     item_labelfgcolor(WINNY_LINKTEXT_COLOR);
     item_labelsize(WINNY_NORMALTEXT_FONTSIZE);
     callback(cbGoToPage,(void*)this);
     //when(when()&FL_WHEN_CHANGED);
 
-    box(WINNY_TOP_BORDERBOX);
+    //box(WINNY_TOP_BORDERBOX);
 
 };
 

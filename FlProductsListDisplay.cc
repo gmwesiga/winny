@@ -2,6 +2,7 @@
 #include <FWidgetSizes.H>
 #include <winny_theme.h>
 #include <WinnyNames.H>
+#include <IApplicationTypes.H> // createNew product screen name
 
 //Fl CallBacks
 static void cbGoToCreateProducts ( Fl_Widget* w, void* o);
@@ -16,50 +17,56 @@ static const UIname PAGENAME(NAME_SEARCH_PRODUCT_SCREEN);
 UIname FlProductsListDisplay::id(){return PAGENAME;};
 
     FlProductsListDisplay::FlProductsListDisplay()
-        :Fl_Group(CONTENT_AREA.X,CONTENT_AREA.Y,CONTENT_AREA.W,CONTENT_AREA.H){
+        :Fl_Group(CONTENT_AREA.X,CONTENT_AREA.Y,CONTENT_AREA.W,CONTENT_AREA.H-MENUBAR_AREA.H){
             begin();
-            menuBar = new Fl_Group(MENUBAR_AREA.X,MENUBAR_AREA.Y,MENUBAR_AREA.W,MENUBAR_AREA.H,
-            PAGENAME.c_str());
-            menuBar->align(FL_ALIGN_TOP_LEFT);
-            menuBar->labelcolor(ACCFONTCOLOR);
-            menuBar->labelsize(14);
-
-            btnNew = new Fl_Button(233,95,57,19,"New");
+            box(WINNY_NO_BORDERBOX);
+            color(WINDOW_COLOR());
+            menuBar = new Fl_Group(MENUBAR_AREA.X,MENUBAR_AREA.Y,MENUBAR_AREA.W,MENUBAR_AREA.H);
+            /*Parent responsible for drawing title*/
+            
+            btnNew = new Fl_Button(
+                DX(266),DY(106),48,15,"new");
+            set_winny_button_theme(btnNew);
             btnNew->color(ACCCOLOR);
             btnNew->labelcolor(FL_WHITE);
             btnNew->box(WINNY_THICK_BORDERBOX);
             btnNew->callback(cbGoToCreateProducts,(void*)this);
             //btnNew->when(btnNew->when()&FL_WHEN_CHANGED);
 
-            filter = new Fl_Menu_Button(341,95,147,19,"Filter by");
+            filter = new Fl_Menu_Button(
+                DX(326),DY(106),80,15,"Filter by");
             set_winny_button_theme(filter);
             filter->callback(cbFilterProductsList,(void*)this);
 
-            btnActivateToggle = new Fl_Button(494,96,68,19,"Activate");
+            btnActivateToggle = new Fl_Button(
+                DX(412),DY(106),66,16,"Activate");
             set_winny_button_theme(btnActivateToggle);
             btnActivateToggle->callback(cbDeactivateProduct,(void*)this);
 
-            btnEdit = new Fl_Button(567,96,68,19,"Edit");
+            btnEdit = new Fl_Button(
+                DX(484),DY(106),65,16,"Edit");
             set_winny_button_theme(btnEdit);
             btnEdit->callback(cbEditProductDetails,(void*)this);
 
-            searchToken = new Fl_Input(805,96,206,19,"Search Products");
-            searchToken->color(FL_WHITE);
-            searchToken->box(WINNY_THIN_BORDERBOX);
+            searchToken = new Fl_Input(
+                DX(811),DY(101),196,22,"Search Products");
+            set_winny_input_theme(searchToken);
+            //searchToken->color(FL_WHITE);
+            //searchToken->alig;
             searchToken->callback(cbSearchProducts,(void*)this);
             searchToken->when(FL_WHEN_ENTER_KEY_CHANGED);
 
-            menuBarResizer = new Fl_Box(649,100,10,2);
+            menuBarResizer = new Fl_Box(DX(649),DY(100),10,0);
             menuBarResizer->box(WINNY_NO_BORDERBOX);
             menuBar->resizable(menuBarResizer);
 
             menuBar->end();
-            menuBar->box(WINNY_TOP_BORDERBOX);
-            prdList = new dataset_view(233,123,776,
-            (int)(((double)384/DESIGNSH)*SCRN_HEIGHT));
+            //menuBar->box(WINNY_TOP_BORDERBOX);
+            prdList = new dataset_view(CONTENT_AREA2.X,CONTENT_AREA2.Y,CONTENT_AREA2.W,
+            CONTENT_AREA2.H);
             prdList->box(WINNY_BOTTOM_BORDERBOX);
-            prdList->table_box(WINNY_BOTTOM_BORDERBOX);
-            prdList->box(WINNY_TOP_BORDERBOX);
+            //prdList->table_box(WINNY_BOTTOM_BORDERBOX);
+            //prdList->box(WINNY_TOP_BORDERBOX);
             resizable((Fl_Widget*)prdList);
             end();
         return;
@@ -105,9 +112,11 @@ UIname FlProductsListDisplay::id(){return PAGENAME;};
     };
 
 //is Called Whenever user clicks Create Product Link
+static Winny::UserIODevName pgname = Winny::UserIODevName::UIOQ_CREATE_PRODUCT;
+
 static void cbGoToCreateProducts ( Fl_Widget* w, void* o){
     FlProductsListDisplay *me = (FlProductsListDisplay*)o;
-    me->raiseEvent(CmdNavigateTo,(void*)NAME_CREATE_PRODUCT_SCREEN);
+    me->raiseEvent(CmdNavigateTo,(void*)&pgname);
 };    
 
 //Called Whenever user Clicks Filter Button on UI

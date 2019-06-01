@@ -1,9 +1,9 @@
 #include "records_lib.h"
-#include "gmdataset.h"
+//#include "gmdataset.h"
 
 // UTILITY FUNCTIONS//
 
-//fills ds with ds representing tb
+/*//fills ds with ds representing tb
 void productTable_to_dataset(Product_Table & tb, dataset& ds){
   ds.set_rows(tb.size());
   ds.set_cols(10);
@@ -29,7 +29,7 @@ void productTable_to_dataset(Product_Table & tb, dataset& ds){
     ds.data(i,8).number(0);
     ds.data(i,9).number(ds.data(i,2).number()*1000);
   }
-}
+}*/
 
 
 vector<Component> decompose(Product_Table& table,  vector<Component> &t)
@@ -288,23 +288,13 @@ Product_Table * open_ftable(string filename){
 
     if(s=="x")break;
     p.set_name(s); p.set_price(px);
-    //*output<<"\t\tDefine a "<<p.name()<<" \n\t\t format: name<space>count\n\t\tcomponent>>>";
-
-    //add components
     Component c;
     while (*input>>c.product_name>>c.count){
-      if(c.product_name=="x")break;
-      p.add_component(c);
-      //*output<<"\t\t"<<p.name()<<"size: "<<p.components_count()
-      //<<"\n\t \tcomponent>>>";
+      if(c.product_name=="x")break;//endofRecord, don't add
+      p.add_component(c);//add
     }
     PRODUCT_TABLE.add(p);
 
-    //print out table
-    //*output<<"\tNew table size: "<<table.size()<<"\n";
-    //print_table();
-
-     // *output  <<"\n\tproduct>>>";
   };
   if(PRODUCT_TABLE.size())return &PRODUCT_TABLE;
   return 0;
