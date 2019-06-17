@@ -1,14 +1,5 @@
-#include "records_lib.h"
-//#include <stdio.h>
-// #include <fstream>
+#include <ProductDef.H>
 
-// void print_comp_list(vector<Component> &v){
-  // printf("\n size is:%d",v.size());
-  // for(int i=0;i<v.size(); ++i){
-    // printf("\n<%s:%d>\n",v[i].product_name.c_str(), v[i].count);
-  // }
-  // printf("done..\n");
-// }
 
 int index(vector<Component> r, string comp_name){
   if(!r.size()) return-1;
@@ -22,8 +13,17 @@ int index(vector<Component> r, string comp_name){
 
 
 /*constructors */
-Product::Product():product_name("un named"),is_compound(0),px(0){
-}
+ProductDef::ProductDef(string id, string name)
+/*Constructor creates table and adds it to internal products table for tracking
+//destructor deletes table entry*/
+:product_name(name),_id(id)
+{
+  /*if it doesn't already exist create*/
+  if (! ProductDef::table.find(id)){
+    ProductDef::table.add(this);
+  }
+  throw "Error in roductDef::ProductDef(string id, string name para Id already exists in table";
+};
 
 Product::Product(string name,double price):product_name(name),is_compound(0),px(price){};
 
