@@ -1,87 +1,232 @@
 #include <ProductDef.H>
+#include <algorithm>
 
 
-int index(vector<Component> r, string comp_name){
-  if(!r.size()) return-1;
-  int i=0;
-  while(i<r.size()){
-   if( r[i].product_name==comp_name){return i;};
-   ++i;
-  }
-  return -1;
-}
-
-
-/*constructors */
 ProductDef::ProductDef(string id, string name)
 /*Constructor creates table and adds it to internal products table for tracking
 //destructor deletes table entry*/
-:product_name(name),_id(id)
+:product_name(name),_id(id),_eof(1)
 {
   /*if it doesn't already exist create*/
   if (! ProductDef::table.find(id)){
     ProductDef::table.add(this);
   }
-  throw "Error in roductDef::ProductDef(string id, string name para Id already exists in table";
+  throw "Error in ProductDef::ProductDef(string id, string name para Id already exists in table";
 };
 
-Product::Product(string name,double price):product_name(name),is_compound(0),px(price){};
-
-/*information about the product*/
-string Product::name(){return product_name;};
-
-bool Product::is_composite(){return is_compound;};
-
-double Product::price(){return px;};
 
 
-//***************************************************************
-void Product::set_name(string s){product_name=s;};
+
+ProductDef::~ProductDef(){
+  ProductDef::table.remove(this->_id);//remove from table
+};
 
 
-//***************************************************************
-void Product::set_price(double d){px=d;return;};
 
 
-//****************************************************************
-int Product::components_count(){return is_compound?comps.size():0;};
+string ProductDef::name(){return product_name;};
+double ProductDef::price(){return px;};
+int ProductDef::count(){return comps.size();};
 
 
-//*****************************************************************
-void Product::add_component(Component comp){
-  //if it is the first component, no need to check, add and return immediately
-  if(!is_compound){
-    comps.push_back(comp);
-    is_compound=!is_compound;
-    return;
-  }
 
-  /*dont add comp if its already added, */
-  int i=0;
-  while(i<comps.size()){
-    if(comp.product_name==comps[i].product_name){
-      //its a duplicate!!;
-      comps[i].count =comp.count; //just edit the count, don't add new
-      return;
+int ProductDef::isComposite()
+/*if true, there must be atleast one entry in components table*/
+{
+  return comps.size()?1:0;
+};
+
+
+
+
+int ProductDef::addElement(string id, int num)
+/*id must match a product id in the internal table*/
+{
+  if(!ProductDef::table.find(id))/*does not exist as a product*/
+    return 0;  
+  
+  /*if its first element, turn off _eof bit
+  if(comps.begin()==comps.end()) _eof = 0;*/
+
+  /*add comp. if its already added,
+   *just edit the count */
+  comps[id]+=num;
+  return 1;
+};
+
+
+
+
+ProductDef* ProductDef::getElement()
+/*returns null pointer if empty or eof()==true*/
+{
+  if (comps.begin()==comps.end()/*Empty*/ )
+   return nullptr;
+
+  if (!_eof){
+  
+    ProductDef* o = table.find(cursor->first);
+    cursor++; 
+    if(cursor==comps.end()){/*end of container. will be caught by first if statement*/
+      _eof = 1;
     }
-    ++i;
-  }
-  comps.push_back(comp);
-  return ;
-};
+    return o;
 
-//****************************************************************
-Component Product::component(int i){
-  //uncheked
-  if( i>=0 && i<comps.size())return comps[i];
-  ;//otherwise, out of range access, exit prog
-   Component c;
-   c.product_name ="Null";
-   c.count=0;
-   return c; //null product;
+  }else {/*_eof*/
+    return nullptr;
+  }
 }
 
 
-//*********************************************************************
-void Product::clear_components(){comps.clear(); is_compound= is_compound?!is_compound:is_compound;};
 
+/*current component = first component in list*/
+void ProductDef::begin(){
+  cursor=comps.begin(); 
+  /*remain in eof if empty*/
+  _eof = comps.begin()!=comps.end()? 0:1;
+};
+
+
+
+
+/*Get data of current component selected*/
+int ProductDef::ElementCount(){
+  return cursor!=comps.end()? cursor->second:0;
+};
+
+
+
+string ProductDef::ElementId(){
+  return cursor!=comps.end()? cursor->first:0;
+};
+
+
+
+
+int ProductDef::eof()
+/*current component == last component. internal cursor can't move anymore,
+call begin()*/
+{
+  return _eof;
+}
+
+
+
+void ProductDef::deleteElement(string id){
+  auto key = comps.find(id);
+  if(key!=comps.end())
+    comps.erase(key);
+};
+
+
+
+void ProductDef::clearElements(){
+  comps.clear();
+};
+
+
+
+/* set properties */
+void ProductDef::name(string _name){product_name = _name;};
+void ProductDef::price (double p){px = p;}
+void ProductDef::cost(double p)  {cpx = p>0?p:0;}
+
+
+
+int ProductDef::Table::add(ProductDef* o)
+/*add only products with unique ids, return 0 if id already exists.*/
+{
+  if(tbl.find(o->product_name)!=tbl.end())/*aready exists*/
+    return 0;
+  
+  tbl[o->_id]=o;
+  return 1;
+};        
+
+
+/*Removes Product of id == id from products table
+and frees memory*/
+int ProductDef::Table::remove(string id){
+  auto o = tbl.find(id);
+  if(o!=tbl.end()){
+    delete(o->second);
+    tbl.erase(o);
+    return 1;
+  }
+  return 0;
+};
+
+
+
+int ProductDef::Table::size(){
+  return tbl.size();
+};
+
+
+
+ProductDef* ProductDef::Table::find(string productid)
+/*null pointer returned if not found*/
+{
+  auto o = tbl.find(productid);
+  if(o!=tbl.end()){
+    return o->second;
+  }
+  return nullptr;
+}
+        
+
+
+ProductDef* ProductDef::Table::getElement(){
+  
+  if (tbl.begin()==tbl.end()/*Empty*/)
+   return nullptr;
+
+  if (!_eof){
+    ProductDef* o = cursor->second;
+    cursor++; 
+    if(cursor==tbl.end()){/*end of container. will be caught by first if statement*/
+      _eof = 1;
+    }
+    return o;
+  } else{
+    return nullptr;
+  }
+
+}
+
+
+
+void ProductDef::Table::begin(){
+  cursor=tbl.begin(); 
+  //firstTime = 0;
+  /*remain on eof if empty*/
+  _eof = tbl.begin()!=tbl.end()? 0:1;
+};
+
+
+
+int ProductDef::Table::eof(){return _eof;};
+
+
+
+//compare by product name
+bool cmp(const ProductDef &a, ProductDef &b){
+  ProductDef &c = (ProductDef&)a;
+  return c.name().compare(b.name())<0?true:false;
+};
+
+void ProductDef::Table::sortById(){
+  std::sort(tbl.begin(),tbl.end(),cmp);
+};
+
+
+
+//compare by components count
+bool cmp2(const ProductDef &a, ProductDef &b){
+  ProductDef &c = (ProductDef&)a;
+  return c.count()>b.count()?true:false;
+};
+/*sort by component Count large first*/
+void ProductDef::Table::sortByCompCount(){
+  std::sort(tbl.begin(),tbl.end(),cmp2);
+};
