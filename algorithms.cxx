@@ -30,6 +30,7 @@ void productTable_to_dataset(Product_Table & tb, dataset& ds){
     ds.data(i,9).number(ds.data(i,2).number()*1000);
   }
 }*/
+int index(vector<Component> r, string comp_name);
 
 
 vector<Component> decompose(Product_Table& table,  vector<Component> &t)
@@ -67,7 +68,7 @@ vector<Component>pack(Product_Table& table, vector<Component> &t)
   vector<Component>in = decompose(table, t);
                                                   //2 get table of composites;
   vector<Component> comps = table.composite_products();
-  vector<Component> result;            // printf("%d\n",in[1].count);
+  vector<Component> result;            
                                                   //3 begining with the biggest composite, //see if it can be composed from in, and how much
   for(int ix=0; ix<comps.size();++ix)              //if true, less,from t, the value equal to this composite,
   {
@@ -79,10 +80,11 @@ vector<Component>pack(Product_Table& table, vector<Component> &t)
     for(int ind=0;ind<v.size();++ind)
     {
       int i =index(in,v[ind].product_name);         //never call index unless sure!
-                                                  //printf("\tindex is:%d\n",i);
+                                                
       in[i].count-=cnt*v[ind].count;               //remove from input, components equal to this composite pair
                                                   //here,input will be updated, less by product_scalar_components(of this)
     }
+    /*add this component to pack*/
     Component c;
     c.product_name = comps[ix].product_name;
     c.count =cnt;
@@ -253,8 +255,8 @@ vector<Component> add(Product_Table& table, vector<Component> &v1, vector<Compon
   {
     int idx = index(a,b[i].product_name);//
     if(idx==-1)
-    {                           //not in list a   // printf("here......\n");
-      //b[i].count=0-b[i].count;   //negate  // printf("here......%d\n",b[i].count);
+    {                           //not in list a   
+      //b[i].count=0-b[i].count;   //negate  
       r.push_back(b[i]);
       continue;
     }
@@ -383,4 +385,15 @@ vector<load_item> components_to_loadItems(vector<Component> c)
     ans.push_back(component_to_loadItem(c[i]));
   }
   return ans;
-}
+};
+
+
+int index(vector<Component> r, string comp_name){
+  if(!r.size()) return-1;
+  int i=0;
+  while(i<r.size()){
+   if( r[i].product_name==comp_name){return i;};
+   ++i;
+  }
+  return -1;
+};

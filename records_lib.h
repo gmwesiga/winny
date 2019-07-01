@@ -101,6 +101,7 @@ class Product_Table {
   vector<Component> add(Product_Table& table, vector<Component> &v1, vector<Component> &v2);
 
   int num_of_composites(Product_Table& table, string s, vector<Component> &in);
+    //number of composites of type s that can be created from in; called by pack
   
   int scalar_components_count(Product_Table& table, string s); //count scalar products that make up product named s;
   

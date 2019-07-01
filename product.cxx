@@ -1,17 +1,20 @@
 #include <ProductDef.H>
 #include <algorithm>
+#include <iostream>/*debug with cout*/
 
+ProductDef::Table ProductDef::table = ProductDef::Table();
 
 ProductDef::ProductDef(string id, string name)
 /*Constructor creates table and adds it to internal products table for tracking
 //destructor deletes table entry*/
-:product_name(name),_id(id),_eof(1)
+:_id(id.c_str()),product_name(name.c_str()),_eof(1)
 {
   /*if it doesn't already exist create*/
-  if (! ProductDef::table.find(id)){
+  if ( (ProductDef::table.find(id))==nullptr){
     ProductDef::table.add(this);
-  }
-  throw "Error in ProductDef::ProductDef(string id, string name para Id already exists in table";
+    return;
+  }//ok successful
+  throw string("Error in ProductDef::ProductDef(string id, string name para Id already exists in table");
 };
 
 
@@ -132,6 +135,11 @@ void ProductDef::price (double p){px = p;}
 void ProductDef::cost(double p)  {cpx = p>0?p:0;}
 
 
+ProductDef::Table::Table(const Table &o){
+  tbl = o.tbl;
+  _eof =o._eof;
+  cursor =o.cursor;
+}
 
 int ProductDef::Table::add(ProductDef* o)
 /*add only products with unique ids, return 0 if id already exists.*/
@@ -216,7 +224,8 @@ bool cmp(const ProductDef &a, ProductDef &b){
 };
 
 void ProductDef::Table::sortById(){
-  std::sort(tbl.begin(),tbl.end(),cmp);
+  //std::sort(tbl.begin(),tbl.end(),cmp);
+  return; //do nothing
 };
 
 
@@ -228,5 +237,6 @@ bool cmp2(const ProductDef &a, ProductDef &b){
 };
 /*sort by component Count large first*/
 void ProductDef::Table::sortByCompCount(){
-  std::sort(tbl.begin(),tbl.end(),cmp2);
+  //std::sort(tbl.begin(),tbl.end(),cmp2);
+  return;//do nothing
 };

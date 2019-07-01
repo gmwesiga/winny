@@ -2,14 +2,10 @@
 #define _PRODUCT_H
 
 #include <string>
-#include <vector>
-#include <fstream>
 #include <map>
-#include "gmdataset.h"
 
 using std::map;
 using std::string;
-using std::vector;
 
 
 class ProductDef{
@@ -24,16 +20,25 @@ class ProductDef{
         int size();
         ProductDef* find(string productid);/*null pointer returned if not found*/
         
-        map<string,int> composites();
-        /*id, and count of component composing product for all composites*/
+        /*iterate table elements*/
+        ProductDef* getElement();
+        void begin();
+        int eof();
 
         void sortById();
         void sortByCompCount();/*sort by component Count*/
+        
+        Table():_eof(1){};
+        Table(const Table &o);
+        ~Table(){};
 
         private:
-        map<string,Product*> tbl;
+        map<string,ProductDef*> tbl;
+        int _eof;
+        map<string,ProductDef*>::iterator cursor;
     };
 
+    /*class global variable: for table tracking all created productDefs accessed with table()*/
     static Table table;
 
     ProductDef(string id, string name);
@@ -49,7 +54,7 @@ class ProductDef{
  
   
     /*componets that make up a product*/
-    int addComponent(string id, int num);
+    int addElement(string id, int num);
     /*id must match a product id in the internal table*/
 
     int count();
@@ -68,13 +73,13 @@ class ProductDef{
     /*current component == last component. internal cursor can't move anymore,
     call begin()*/
 
-    void deleteComponent(string id);
-    void clearComponents();
+    void deleteElement(string id);
+    void clearElements();
 
     /* set properties */
     void name(string _name);
     void price (double px);
-    void cost(double px){cpx=px>0?px:0;}
+    void cost(double px);
 
     private:
 
@@ -83,14 +88,12 @@ class ProductDef{
     if currentComponent before next() was last item in list, eof()is set to true
     test for eof every after next()*/
 
-    static Table table;
-    /*class global variable: for table tracking all created productDefs accessed with table()*/
-    
     string product_name, _id;
-    int is_compound;
+    int _eof;
     double px, cpx;
 
     map<string,int> comps;/*id, count*/
+    map<string,int>::iterator cursor;
 
     /* optimisations additions on 7 dec*/
     int units_purchased;
@@ -100,14 +103,5 @@ class ProductDef{
     int units_returned_in;
 };
 
-
-struct LineItem {
-  string item;
-  int count;
-  double attr1;/*currently used for rate*/
-  double attr2;/*currently used for amount*/
-
-};
-//typedef vector<Component> componentVector;
 
  #endif
