@@ -33,4 +33,26 @@ FlCreateContactDisplay::FlCreateContactDisplay()
     holrule1->box(WINNY_TOP_BORDERBOX);
     resizer = new Fl_Box(746,436,6,1);
     resizable(resizer);
-}
+};
+
+
+
+void FlCreateContactDisplay::show(){
+    Fl_Group::show();
+};
+
+
+void FlCreateContactDisplay::hide(){
+    Fl_Group::hide();
+};
+
+
+void FlCreateContactDisplay::update(){
+    Fl_Group::redraw();
+};
+
+
+
+UIname FlCreateContactDisplay::id(){
+    return "Administrator/New Product";
+};

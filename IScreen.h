@@ -14,10 +14,10 @@ enum class UiStatus {
 
 class IScreen :public IUserInterface {
     public:
-    virtual const UiStatus status()=0;
-    virtual const IProductsListDisplay* productsListDisplay()=0;
-    virtual const ISessionInfoDisplay* sessionInfoDisplay()=0;
-    virtual const INavDisplay* navDisplay()=0;
+    const UiStatus status()=0;
+    virtual void log(string msg)=0;
+    virtual void switchToDisplay(Winny::UserIODevName sn=0); 
+    /*if no pending prompts, switch to screen named sn*/
     virtual ~IScreen(){};
 };
 

@@ -19,6 +19,8 @@ class FlCreateProductDisplay : public Fl_Group , public IUserInterface{
     void hide();
     void update();   
     UIname id();
+    void readBuff(MemAddress buff){buff= nullptr;};
+    void writeBuff(MemAddress buff){buff=nullptr;/*should be implemented */};
 
     private:
     Fl_Input *prodName, 
@@ -31,7 +33,7 @@ class FlCreateProductDisplay : public Fl_Group , public IUserInterface{
     Fl_Button *btnclear;
     Fl_Button *btnClearAll, *btnSave, *btnCancel;
     dataset_view *components;
-    Fl_Box *holrule1, *holrule2;//like html <HR>
+    Fl_Box *holrule1, *holrule2, *holrule3, *bgbox;//like html <HR>
     Fl_Box *resizer;
 };
 

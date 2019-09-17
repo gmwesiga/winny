@@ -19,7 +19,8 @@ class FlContactsListDisplay :  public Fl_Group, public IUserInterface {
     void show();
     void hide();
     void update();
-
+    void readBuff(MemAddress buff){return;};
+    void writeBuff(MemAddress buff){return;/*should be implemented */};
     private:
     Fl_Group       *menuBar;
     Fl_Button      *btnNew, *btnActivateToggle, *btnEdit;

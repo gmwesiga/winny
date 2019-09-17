@@ -1,13 +1,13 @@
-#ifndef FPRODUCTSLISTDISPLAY_H
-#define FPRODUCTSLISTDISPLAY_H
+#ifndef FLCASHFLOWDISPLAY_H
+#define FLCASHFLOWDISPLAY_H
 
-#include <IProductsListDisplay.H>
+#include <IUserInterface.H>
 #include <IExtEventSource.h>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Input.H>
-#include <FL/Fl_Menu_Button.H>
-#include <FL/Fl_Box.H>
+#include <FL/Fl_Choice.H>
+#include <FL/Fl_Output.H>
 #include <dataset_view.h>
 #include <IApplicationTypes.H>
 
@@ -31,27 +31,26 @@
  * 
  * 
  */
-class FlProductsListDisplay : public IUserInterface , public Fl_Group{
+class FlCashFlowDisplay : public IUserInterface , public Fl_Group{
     public:
-    FlProductsListDisplay();
+    FlCashFlowDisplay();
     void show();
     void hide();
     void update();
-    void readBuff(MemAddress buff){buff=&fltrParams;};//filter to products list
+    void readBuff(MemAddress buff){buff=0;};//filter to products list
     void writeBuff(MemAddress buff);//matches
     UIname id();
   //  void raiseEvent(StdSystem::sEvent e, void *eData=nullptr);
     void run(){return;};
 
     private:
-    Fl_Group       *menuBar;
-    Fl_Button      *btnNew, *btnActivateToggle, *btnEdit;
-    Fl_Menu_Button *filter;
-    Fl_Input       *searchToken;
-    dataset_view   *prdList;
+    Fl_Button      *btnRefresh, *btnPrint, *btnShare;
+    Fl_Choice *optCashFlowType;
+    Fl_Output       *txtBeginDate, *txtEndDate;
+    dataset_view   *vwCashFlow;
     dataset        *output;
-    Winny::ProductsListFilter fltrParams;
-    Fl_Box         *menuBarResizer;
+    //Winny::ProductsListFilter fltrParams;
+    Fl_Box         *resizer;
 };
 
 #endif

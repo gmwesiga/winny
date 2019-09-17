@@ -1,11 +1,14 @@
 #include "FlScreen.h"
-#include "FlSessionInfoDisplay.h"
 #include "FlNavDisplay.h"
 #include <FlProductsListDisplay.H>
+#include <FlListDisplay.H>
 #include <FlOffPremiseSaleUserIO.H>
+#include <FlCashFlowDisplay.H>
+#include <FlStockTransactionDisplay.H>
 #include "winny_theme.h"
 #include <FWidgetSizes.H>
 #include <FL/fl_ask.H>
+
 //#include <PageNames.H>
 #define WBUFSIZE 125 //Screen Titles shouldn't be more than these characters
 
@@ -23,7 +26,7 @@ FlScreen::FlScreen(): Fl_Double_Window(SCRN_WIDTH,SCRN_HEIGHT)
     titleBgBox->box(WINNY_THIN_BORDERBOX);
     titleBgBox->color(fl_rgb_color(251, 251, 251));
 
-    titlebox = new Fl_Box(DX(261),DY(75),200,19);
+    titlebox = new Fl_Box(DX(261),DY(75),CONTENT_AREA2.W,19);
     titlebox->box(FL_NO_BOX);
     titlebox->align(FL_ALIGN_INSIDE | FL_ALIGN_LEFT |FL_ALIGN_BOTTOM);
     titlebox->labelcolor(WINNY_TITLETEXT_COLOR);
@@ -65,7 +68,7 @@ FlScreen::FlScreen(): Fl_Double_Window(SCRN_WIDTH,SCRN_HEIGHT)
     menuicon->box(FL_NO_BOX);
     menuicon->add("Preferances/Settings");
 
-    localNav = new Fl_Tree(DX(50),DY(97),192,490);
+    localNav = new Fl_Tree(DX(50),DY(97),/*192*/150,432);
     localNav->showroot(0); //remove it
     localNav->usericon(nullptr);
     localNav->connectorstyle(FL_TREE_CONNECTOR_NONE);
@@ -90,13 +93,13 @@ FlScreen::FlScreen(): Fl_Double_Window(SCRN_WIDTH,SCRN_HEIGHT)
     set_winny_window_theme(this);//do this before creating invisible resize box
 
     end();
-
+    //fl_alert("we are here");
 };
 
 
 
 
-void FlScreen::writeBuffer(void *buff){
+void FlScreen::writeBuff(MemAddress buff){
     //write roles, operating unit names
     log ("In FlScreen::WriteBuffer");
     Winny::AppInfo* appState = (Winny::AppInfo*)buff;
@@ -125,12 +128,14 @@ void FlScreen::setUpRole(Winny::Role o){;
         constructDisplay(Winny::UserIODevName::UIOQ_SEARCH_CONTACTS);
         constructDisplay(Winny::UserIODevName::UIOQ_SEARCH_TRANSACTIONS);
         constructDisplay(Winny::UserIODevName::UIOQ_CREATE_PRODUCT);
+        constructDisplay(Winny::UserIODevName::UIOQ_SEARCH_CONTACTS);
         constructDisplay(Winny::UserIODevName::UIOQ_CREATE_ROLE);
         constructDisplay(Winny::UserIODevName::UI0Q_CREATE_TRANS_SALES_CASH);
         constructDisplay(Winny::UserIODevName::UIOQ_CREATE_TRANS_SALES_REP);
         constructDisplay(Winny::UserIODevName::UIOQ_CREATE_TRANS_SALES_CREDIT);
         constructDisplay(Winny::UserIODevName::UIOQ_CREATE_TRANS_GOODS_DELIVERY);
         constructDisplay(Winny::UserIODevName::UIOQ_CREATE_TRANS_GOODS_RECIEVED);
+        constructDisplay(Winny::UserIODevName::UIOQ_CREATE_CONTACT);
 
     }else{
         //draw role specif menus
@@ -139,19 +144,100 @@ void FlScreen::setUpRole(Winny::Role o){;
 }
 
 
-/*Returns the current status of the Screen*/
-const UiStatus FlScreen::status(){
-    return UiStatus::IDLE;
+
+IUserInterface* FlScreen::constructDisplay(Winny::UserIODevName n){
+    IUserInterface* ret;
+    Fl_Group::current(this);
+    
+    //first reset sizes to design
+    int wid(w()); int hei(h()); int xx(x()); int yy(y());
+    resize(xx,yy,SCRN_WIDTH,SCRN_HEIGHT);
+
+    switch (n){
+        case Winny::UIOQ_SEARCH_PRODUCTS:
+             ret = new FlListDisplay();
+             ((FlListDisplay*)ret)->id("Product Management / Search");
+             ((FlListDisplay*)ret)->sethandler(productListCb);
+            break;
+        case Winny::UIOQ_CREATE_PRODUCT:
+            ret = new FlCreateProductDisplay(
+                CONTENT_AREA.X,CONTENT_AREA.Y,CONTENT_AREA.W,CONTENT_AREA.H
+            );
+            break;
+
+        case Winny::UIOQ_CREATE_TRANS_SALES_REP:
+            ret = new FlOffPremiseSaleUserIO(
+                CONTENT_AREA.X,CONTENT_AREA.Y,CONTENT_AREA.W,CONTENT_AREA.H);
+            break;
+
+        case Winny::UIOQ_CREATE_TRANS_GOODS_RECIEVED:
+            ret = new FlStockTransactionDisplay();
+            break;
+
+        case Winny::UIOQ_SEARCH_CONTACTS:
+             ret = new FlListDisplay();
+             ((FlListDisplay*)ret)->id("Contact Management / Search");
+             ((FlListDisplay*)ret)->sethandler(productListCb);
+            break;
+
+        case Winny::UIOQ_CREATE_CONTACT:
+            ret = new FlCreateContactDisplay();
+            break;
+
+        case Winny::UIOQ_CASH_FLOW:
+            ret = new FlCashFlowDisplay();
+            break;
+
+            
+        default:
+            ret = nullptr;
+            break;
+    }
+    //connect to app
+    if (ret){
+        log("New Display just created");
+        bind(ret,n);
+        ret->Attach(_app_);
+        ret->hide();
+    }
+    //Reset sizes
+    resize(xx,yy,wid,hei);
+    return ret;
 };
 
 
 
-
-const IProductsListDisplay* FlScreen::productsListDisplay(){
+int FlScreen::bind(IUserInterface* dev,Winny::UserIODevName devId){
+//only used to bind / write mapping
+    if(dev){
+        displays[devId]=dev;
+        addTomenu(dev,devId);
+        return 1;
+    }
     return 0;
 };
 
 
+
+
+
+void FlScreen::addTomenu(IUserInterface* dev,Winny::UserIODevName devId){
+    /*Add dev->id to menu*/
+    if(!dev)return;
+    Winny::UserIODevName* o;
+    o = new Winny::UserIODevName(devId);
+    menus.push_back(o);
+    localNav->add(dev->id().c_str());
+    localNav->find_item(dev->id().c_str())->user_data((void*)o );
+    localNav->redraw();
+};
+
+
+
+/*Returns the current status of the Screen*/
+const UiStatus FlScreen::status(){
+    return UiStatus::IDLE;
+};
 
 
 void FlScreen::run(){
@@ -192,88 +278,6 @@ void FlScreen::update(){
 
 
 
-const ISessionInfoDisplay* FlScreen::sessionInfoDisplay(){
-    return 0;
-};
-
-
-
-
-const INavDisplay* FlScreen::navDisplay(){
-    return 0;
-};
-
-
-
-
-
-
-
-int FlScreen::bind(IUserInterface* dev,Winny::UserIODevName devId){
-//only used to bind / write mapping
-    if(dev){
-        displays[devId]=dev;
-        addTomenu(dev,devId);
-        return 1;
-    }
-    return 0;
-};
-
-
-
-
-void FlScreen::addTomenu(IUserInterface* dev,Winny::UserIODevName devId){
-    /*Add dev->id to menu*/
-    if(!dev)return;
-    Winny::UserIODevName* o;
-    o = new Winny::UserIODevName(devId);
-    menus.push_back(o);
-    localNav->add(dev->id().c_str());
-    localNav->find_item(dev->id().c_str())->user_data((void*)o );
-    localNav->redraw();
-};
-
-
-
-IUserInterface* FlScreen::constructDisplay(Winny::UserIODevName n){
-    IUserInterface* ret;
-    Fl_Group::current(this);
-    
-    //first reset sizes to design
-    int wid(w()); int hei(h()); int xx(x()); int yy(y());
-    resize(xx,yy,SCRN_WIDTH,SCRN_HEIGHT);
-
-    switch (n){
-        case Winny::UIOQ_SEARCH_PRODUCTS:
-            ret = new FlProductsListDisplay();
-            break;
-        case Winny::UIOQ_CREATE_PRODUCT:
-            ret = new FlCreateProductDisplay(
-                CONTENT_AREA.X,CONTENT_AREA.Y,CONTENT_AREA.W,CONTENT_AREA.H
-            );
-            break;
-
-        case Winny::UIOQ_CREATE_TRANS_SALES_REP:
-            ret = new FlOffPremiseSaleUserIO(
-                CONTENT_AREA.X,CONTENT_AREA.Y,CONTENT_AREA.W,CONTENT_AREA.H);
-            break;
-        default:
-            ret = nullptr;
-            break;
-    }
-    //connect to app
-    if (ret){
-        log("New Display just created");
-        bind(ret,n);
-        ret->Attach(_app_);
-        ret->hide();
-    }
-    //Reset sizes
-    resize(xx,yy,wid,hei);
-    return ret;
-};
-
-
 
 
 IUserInterface* FlScreen::resolve(Winny::UserIODevName devId){
@@ -305,7 +309,8 @@ void FlScreen::switchToDisplay(Winny::UserIODevName dname){
         displays.at(dname)->show();
         current = displays.at(dname);
         //update title
-        titlebox->copy_label(current->id().c_str());
+        std::size_t pos = current->id().find_last_of('/'); //position of title in id string
+        titlebox->copy_label(current->id().substr(pos).c_str());
         //redraw();
         return; 
  

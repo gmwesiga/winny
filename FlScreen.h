@@ -3,9 +3,9 @@
 
 #include "IScreen.h"
 #include "IExtEventSource.h"
-#include "ISessionInfoDisplay.h"
+//#include "ISessionInfoDisplay.h"
 #include "INavDisplay.h"
-#include <FlLocalNavDisplay.H>
+//#include <FlLocalNavDisplay.H>
 #include <FlCreateProductDisplay.H>
 #include <FlContactsListDisplay.H>
 #include <FlCreateContactDisplay.H>
@@ -25,11 +25,7 @@ class FlScreen : public IScreen, public Fl_Double_Window{
     public:
     FlScreen();
     const UiStatus status();
-    const IProductsListDisplay* productsListDisplay();
-    const ISessionInfoDisplay* sessionInfoDisplay();
-    const INavDisplay* navDisplay();
     void log(string msg);
-
     void switchToDisplay(Winny::UserIODevName sn); 
     /*if no pending prompts, switch to screen named sn*/
     
@@ -40,7 +36,8 @@ class FlScreen : public IScreen, public Fl_Double_Window{
    // int handle(int e);//override so we can tap the Show/ load event
     void update();
     void Attach(StdSystem::IApplication* app);
-    void writeBuffer(void *buff);
+    void writeBuff(MemAddress buff);
+    void readBuff(MemAddress buff){buff=nullptr;}
 
     private:
     IUserInterface* constructDisplay(Winny::UserIODevName n);
@@ -72,8 +69,6 @@ class FlScreen : public IScreen, public Fl_Double_Window{
     Fl_PNG_Image* _menuicon_;
     Fl_Menu_Button* menuicon;
 
-    FlContactsListDisplay *contactsList;
-    FlCreateContactDisplay *creatContactTab;
     FlNotificationDisplay *msgs;
 
     IUserInterface* current;

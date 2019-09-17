@@ -11,10 +11,15 @@
 #include <FL/Fl_Menu_Button.H>
 #include <FL/Fl_Box.H>
 
-class FlCreateContactDisplay : public Fl_Group {
+class FlCreateContactDisplay : public Fl_Group, public IUserInterface {
     public:
     FlCreateContactDisplay();//pass window;
     UIname id();
+    void show();
+    void hide();
+    void update();
+    void readBuff(MemAddress buff){buff=nullptr;};
+    void writeBuff(MemAddress buff){buff=nullptr;/*should be implemented */};
 
     private:
     Fl_Input *cName, 

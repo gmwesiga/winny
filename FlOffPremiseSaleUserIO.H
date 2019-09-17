@@ -15,8 +15,8 @@ struct FlOffPremiseSaleUserIO : public Fl_Group, public IUserInterface {
     void show();
     void hide();
     void update();
-    void readBuffer(void* buff);//filter to products list
-    void writeBuffer(void* buff);//matches
+    void readBuff(MemAddress buff);//filter to products list
+    void writeBuff(MemAddress buff);//matches
     UIname id();
 
     private:
@@ -28,7 +28,7 @@ struct FlOffPremiseSaleUserIO : public Fl_Group, public IUserInterface {
     Fl_Input*  cashRecieved;
     Fl_Input*  salesAmount;//enter sales reciepts in documents
     Fl_Input*  recievableAmount;
-    Fl_Box*  hr1, *hr2, *hr3, *hr4, *resizer;
+    Fl_Box   *bgbox ,*hr1, *hr2, *hr3, *hr4, *resizer;
 
     dataset_view *Documents;
     dataset_view *Sales; 
