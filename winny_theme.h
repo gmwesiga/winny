@@ -10,8 +10,8 @@
 //To do.. new design
 //all definitions to use #define macro
 //widget themes
-inline Fl_Color WGT_COLOR_DOM(){return fl_rgb_color(252,252,252);};//same as below
-inline Fl_Color DOMWGT_COLOR(){return fl_rgb_color(252,252,252);};//light gray 
+inline Fl_Color WGT_COLOR_DOM(){return fl_rgb_color(249,249,249);};//same as below
+inline Fl_Color DOMWGT_COLOR(){return WGT_COLOR_DOM();};//light gray 
 inline Fl_Color ACCWGT_COLOR(){return fl_rgb_color(110,153,255);};//grey blue
 
 #define DOMCOLOR DOMWGT_COLOR()
@@ -35,8 +35,8 @@ inline Fl_Color ACCFONT_COLOR2(){return fl_rgb_color(204, 102, 0);};
 #define WINNY_LINKTEXT_COLOR ACCFONT_COLOR()
 #define WINNY_NORMALTEXT_COLOR DOMFONT_COLOR()
 #define WINNY_MAINTITLETEXT_COLOR  fl_rgb_color(148, 185, 222)
-#define WINNY_TITLETEXT_COLOR ACCFONT_COLOR()
-#define WINNY_SUBTITLETEXT_COLOR DOMFONT_COLOR2()
+#define WINNY_TITLETEXT_COLOR ACCFONT_COLOR2()
+#define WINNY_SUBTITLETEXT_COLOR DOMFONT_COLOR()
 
 #define WINNY_NORMALFONT FL_HELVETICA
 #define WINNY_BOLDFONT  FL_HELVETICA_BOLD
@@ -62,7 +62,7 @@ inline Fl_Color MENU_COLOR() {return fl_rgb_color(251,251,251); }
 //GRID LINES
 inline Fl_Color GRIDLINE_COLOR(){return fl_rgb_color(192,192,192);}//dark gray
 inline Fl_Color GRIDLINE_COLOR2(){return fl_rgb_color(228,240,254);}//pale grayblue
-inline Fl_Color GRIDLINE_COLOR3(){return fl_rgb_color(120, 120, 120);}//verydark gray
+inline Fl_Color GRIDLINE_COLOR3(){return fl_rgb_color(160, 160, 160);}//verydark gray
 
 void set_winny_input_theme(Fl_Input_*w);
 void set_winny_button_theme(Fl_Widget*w);

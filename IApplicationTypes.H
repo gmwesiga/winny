@@ -2,6 +2,7 @@
 #define _WINNYAPPLICATION_TYPES_H
 #include <string>
 #include <vector>
+#include <gmdataset.h>
 
 namespace Winny {
   using namespace std;
@@ -19,6 +20,7 @@ namespace Winny {
         UIOQ_SEARCH_CONTACTS,
         UIOQ_SEARCH_TRANSACTIONS,
         UIOQ_CREATE_PRODUCT,
+        UIOQ_CREATE_CONTACT,
         UIOQ_CREATE_ROLE,
         UI0Q_CREATE_TRANS_SALES_CASH,
         UIOQ_CREATE_TRANS_SALES_REP,
@@ -29,27 +31,34 @@ namespace Winny {
     //A serverName is used to locate the Winny Server
     typedef std::string ServerName;
 
-    //A Flag representing the data type of typeSafe dataObject 
-    //returned By the winny Server
-    enum ObjType {STRING,BOOL,INT,IMAGE};
-
-    struct Data{
-        void* object;
-        ObjType type;    
-    };
-
     //generic and dynamic Storage type used by application to get datasets
-    //from server and output them to UIs 
-    typedef vector<vector<Data> > Dataset;
+    //from server and output them to UIs cliets should not assume vector, but 
+    //instead assume a generic stl container and use iterators only for 
+    //input and output
+    typedef dataset Dataset;
+    //typedef vector<vector<Data> > Dataset;
 
     struct ProductsListFilter{
         bool isComposite;
-        char searchKey[100];//IO to enforce this limit...
+        char* searchKey;//IO to enforce this limit...
     };
 
     struct ProductsListParams{
         ProductsListFilter inPut;   
-        Dataset outPut;
+        Dataset* outPut;
+    };
+
+    /*Modified ProductListFilter and ProductListParams,Generalised them 
+     *as follows*/
+
+    struct QueryCond{/*Query Conditions*/
+        bool isComposite;
+        char* searchKey;//IO to enforce this limit...
+    };
+
+    struct Query{
+        QueryCond inPut;   
+        Dataset* outPut;
     };
 
     struct OpUnitInfo{

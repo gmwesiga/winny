@@ -38,6 +38,8 @@ class dataset_view : public Fl_Table
     static void dataview_cb(dataset* d,void* v);
     void col_auto_resize(int);
     int col_auto_resize();
+    int col_auto_width(int col);
+    //computes the width that will fit the largest data Cell in column col
 
  private:
      dataset* data_;

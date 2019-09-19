@@ -1,6 +1,8 @@
 #include <Application.H>
 //#include <records_lib.h>
 #include<FL/fl_ask.H> //todo remove this after production
+#include<stdlib.h>
+
 #define screen scrn
 
 //Constructor optionally sets reference to the UI to be
@@ -36,21 +38,24 @@ int Application::handle(sEvent cmd,void *eData){
             curStatus.sessionInfo.operatingUnits.push_back({(char*)"Scan Distributors",(char*)"Scrs"});
             curStatus.sessionInfo.operatingUnits.push_back({(char*)"Scan Distributors",(char*)"Scrs"});
             curStatus.sessionInfo.role.name = (char*)"Admin";
-            userIO->writeBuffer(&curStatus);
+            userIO->writeBuff(&curStatus);
         break;
         case CmdsearchProduct:
             userIO->log("CmdSearchProduct...Delivered");
+            productListUpdate(eData);
             break;
         case CmdEditProductDetails:
             userIO->log("CmdEditProductDetails...Delivered");
+
             break;
         case CmdNavigateTo:
             {//char* data = (char*)eData;
             //userIO->log(string("navigating to ").append(data));
             navigate((Winny::UserIODevName*)eData);}
             break;
-        case CmdFilterProductsList:
-            userIO->log("CmdFilterProductsList...Delivered");
+        case CmdUpdateProductsList:
+            userIO->log("***CmdUpdateProductsList...Delivered");
+            productListUpdate(eData);
         break;
         default:
             userIO->log("@@@@unkown Command ...Delivered");
@@ -64,7 +69,36 @@ void Application::navigate (Winny::UserIODevName* n){
 
  int Application::productListUpdate(void* o){
      //do some queries
-     //update ((ui*)o)->writeBuffer(p)
+     IUserInterface* io = (IUserInterface*)o;
+     Winny::ProductsListFilter *fltr;
+     //io->readBuff(fltr);
+     //if (fltr->)
+
+     //update
+
+     /* string*/double s(10);//*std::;
+     variable data;
+
+     int rc = 50; int cc = 3;
+    Winny::Dataset output(rc,cc);
+    // output.resize(rc);
+     for (int r=0; r<rc; r++){
+         for (int c=0; c<cc; c++){
+            data.number(s*rand());
+            output.data(r,c,data);
+            if(output.data(r,c).number()>300000){
+                output.data(r,c).style().forecolor = wcolor(0,125,12);
+                
+            }
+            output.data(r,c).style().borders = Borders::LEFT_RIGHT_BORDER;
+            
+         }
+         output.data(r,0).cstring("some very long long long stupid text");
+     }
+    Winny::ProductsListParams out;
+    out.outPut =& output;
+    io->writeBuff(&out);
+    userIO->log("What the fuck***");
      return 1;
  }
 

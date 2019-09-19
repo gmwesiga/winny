@@ -73,7 +73,7 @@ void set_winny_input_theme(Fl_Input_*w){
     w->labelcolor(WINNY_NORMALTEXT_COLOR); 
     w->textcolor(WINNY_NORMALTEXT_COLOR); //text color;
     w->labelsize(WINNY_NORMALTEXT_FONTSIZE); 
-    w->textsize(WINNY_NORMALTEXT_FONTSIZE);   //text size
+    w->textsize(WINNY_NORMALTEXT_FONTSIZE+2);   //text size
     w->box(WINNY_THIN_BORDERBOX);
     w->align(FL_ALIGN_TOP_LEFT);
 };
@@ -83,9 +83,9 @@ void set_winny_window_theme(Fl_Widget*w){
    if(w->color()==FL_BACKGROUND_COLOR || w->color()==FL_BACKGROUND2_COLOR) 
       w->color(WINDOW_COLOR()); //dont update if we have already provided a color
    if(w->labelcolor()==FL_FOREGROUND_COLOR){   
-      w->labelcolor(DOMFONT_COLOR()); 
+      w->labelcolor(WINNY_NORMALTEXT_COLOR); 
     //w->textcolor(DOMFONT_COLOR()); //text color;
-      w->labelsize(DOMFONT_SIZE()); 
+      w->labelsize(WINNY_NORMALTEXT_FONTSIZE); 
    }
    if((int)(w->box())<bindex) //we didn't assign a custome box
       w->box(WINNY_NO_BORDERBOX);
@@ -106,7 +106,8 @@ void set_winny_button_theme(Fl_Widget*w){
     //w->textcolor(DOMFONT_COLOR()); //text color;
     w->labelsize(WINNY_NORMALTEXT_FONTSIZE); 
     //w->textsize(DOMFONT_SIZE());   //text size
-    w->box(WINNY_THIN_BORDERBOX);
+    w->box(WINNY_THICK_BORDERBOX);
+    w->selection_color(SELECTION_BACKCOLOR2());
 };
 
 void set_winny_group_theme(Fl_Group*w){

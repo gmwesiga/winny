@@ -4,7 +4,7 @@
 #include <IExtEventSource.h>
 
 typedef std::string UIname; // name of IUserInterface Name
-typedef MemAddress void*;
+#define MemAddress void*
 
 class IUserInterface :  public virtual StdSystem::IExtEventSource {
     public:

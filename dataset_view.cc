@@ -1,22 +1,26 @@
 #include "dataset_view.h"
 #include "winny_theme.h"
-
+#include <FL/fl_ask.H>
+#include <iostream>
+using std::cout;
+using std::endl;
 char* num2string(double num);
 
 dataset_view::dataset_view(int x, int y, int w, int h, const char* L)
 :Fl_Table::Fl_Table(x,y,w,h,L), data_(nullptr)
 {
     init_ui();
-    color(WGT_COLOR_DOM());
+    color(WINDOW_COLOR());
     col_header(ON);
     col_resize(ON);
-  NORMAL_FSIZE          = DOMFONT_SIZE();
-  backcolor             = DOMWGT_COLOR();
+  NORMAL_FSIZE          = WINNY_NORMALTEXT_FONTSIZE;
+  backcolor             = WINDOW_COLOR();
   border_color          = DOMWGT_COLOR();      
   Fl_Align alignment    = FL_ALIGN_LEFT;
   set_winny_button_theme(vscrollbar);
   set_winny_button_theme(hscrollbar);
   vscrollbar->slider(WINNY_THICK_BORDERBOX);
+  vscrollbar->type(FL_VERT_NICE_SLIDER);
   hscrollbar->slider(WINNY_THICK_BORDERBOX);
   set_selection(0,0,0,0);
   end();
@@ -25,6 +29,8 @@ dataset_view::dataset_view(int x, int y, int w, int h, const char* L)
   gridcolor = wcolor2flcolor(wcolor(0,0,94));
   //printf("dataset_view constructor done");
 }
+
+
 
 void dataset_view::draw_cell(TableContext context, int R, int C, int X, int Y, int W, int H)
 {   
@@ -59,7 +65,7 @@ void dataset_view::draw_cell(TableContext context, int R, int C, int X, int Y, i
 	  draw_data(data_->col_header(C),X,Y,W,H);
       draw_grid(data_->col_header(C).style().borders,X,Y,W,H);
       //reset
-      backcolor             = DOMWGT_COLOR();
+      backcolor             = WINDOW_COLOR();
       border_color          = DOMWGT_COLOR(); 
       return;
 
@@ -67,7 +73,7 @@ void dataset_view::draw_cell(TableContext context, int R, int C, int X, int Y, i
       draw_data(data_->row_header(R),X,Y,W,H);
       draw_grid(data_->row_header(R).style().borders,X,Y,W,H);
       //reset
-      backcolor             = DOMWGT_COLOR();
+      backcolor             = WINDOW_COLOR();
       border_color          = DOMWGT_COLOR(); 
       return;
   }
@@ -76,11 +82,13 @@ void dataset_view::draw_cell(TableContext context, int R, int C, int X, int Y, i
 void dataset_view::draw_data(table_data& dt, int X, int Y, int W, int H)
 {
     //dt = const_cast<table_data>(dt); 
-    fl_color(backcolor);                        //white background
-    fl_font(FL_HELVETICA,NORMAL_FSIZE);         //prepare to draw text
+    fl_color(backcolor);                       
+    fl_font(WINNY_NORMALFONT,WINNY_NORMALTEXT_FONTSIZE);         //prepare to draw text
     fl_push_clip(X,Y,W,H);
     switch(dt.type()){
         case NUMBER:
+           // fl_alert(num2string(dt.number()));
+           cout<<dt.number()<<" : ";
             fl_rectf(X,Y,W,H);
             fl_color(wcolor2flcolor(dt.style().forecolor));                       //text color is black
             fl_draw( num2string(dt.number()), X+10, Y,W-20, H, alignment);//-10 creates a small margin on the left -20 on the right
@@ -156,16 +164,23 @@ void dataset_view::attach_dataset( dataset* d){
     cols(d->cols());
     rows(d->rows());
     set_selection(0,0,0,cols()?cols()-1:0);
-    
-    int W = w()-vscrollbar->w();
+
+    resize(x(),y(),w(),h());
+    redraw();
+   /*  int W = w()-vscrollbar->w();
     W = W/cols();
     ow=w();
     col_width_all(W);
     col_resize_min(W);
+ */
+
 
     d->add_listener(& dataview_cb, (void*)this);
     data_ = d;
-
+    for(int c=0; c<cols(); c++){
+        col_width(c,col_auto_width(c));
+    }
+    col_resize_min(20);
     redraw();
 
 };
@@ -204,7 +219,13 @@ int dataset_view::handle(int e){
 		   
            case FL_PUSH: 
             cxt = cursor2rowcol(R,C,rf);
-            if (cxt!=CONTEXT_CELL)return ret;
+            if (cxt!=CONTEXT_CELL){
+                //need to call redraw, if not, some cases,
+                //portions of view get invalidated
+                //redraw_range(toprow,botrow,0,rightcol);
+                redraw();
+                return ret;
+            }
             dsv_select_row = R;
 
             set_selection(R,0,R,rightcol);//select this row
@@ -283,18 +304,49 @@ int dataset_view::col_auto_resize(){
     return col_auto_resize_;
 };
 
+
+
+int dataset_view::col_auto_width(int col){
+    if(!data_)return 0;
+    if(col<0|| col>=cols())return 0;
+    int w = 0; int tw, th;
+    for(int r=0; r<rows(); r++){
+        tw =th = 0; //reset
+        fl_font(WINNY_NORMALFONT,WINNY_NORMALTEXT_FONTSIZE);
+        switch (data_->data(r,col).type())
+        {
+        case data_kind::NUMBER :
+            fl_measure(num2string(data_->data(r,col).number()),tw, th);
+            w= tw>w? tw:w;
+            break;
+        
+        case data_kind::CSTRING:
+            fl_measure(data_->data(r,col).cstring(),tw,th);
+            w=tw>w?tw:w;
+            break;
+        default://images etc
+            break;
+        }
+    } 
+    return w +40;//add 40 pixels allowance
+}
+
 void dataset_view::resize(int X, int y, int W, int h){
 
     if(!col_auto_resize_){
-            Fl_Table::resize(X,y,W,h);
+        int W2 = W-vscrollbar->w();//new width
+         for(int i=0; i<cols(); i++){
+            col_width(i, (double)1/cols() *W2);//auto resize to new width
+        }
+        Fl_Table::resize(X,y,W,h);
         return;
     } 
 
-    int W2 = W-vscrollbar->w();//new width
 
     for(int i=0; i<cols(); i++){
-        col_width(i,
-        (double)1/cols() *W2);//auto resize to new width
+        //col_width(i,
+        //(double)1/cols() *W2);//auto resize to new width
+        col_width(i,col_auto_width(i));
     }
 
         Fl_Table::resize(X,y,W,h);

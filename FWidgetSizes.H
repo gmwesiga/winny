@@ -20,6 +20,8 @@
 #define DX(x) (x)
 #define DY(y) (y)
 
+#define SLWH 25 //single Line Wigdets Height 
+
 const FwSizes CONTENT_AREA = {
     261,97,
     (int)(((float)749/DESIGNSW)* SCRN_WIDTH),
@@ -29,19 +31,27 @@ const FwSizes CONTENT_AREA = {
 const FwSizes MENUBAR_AREA = {
     CONTENT_AREA.X,CONTENT_AREA.Y,
     CONTENT_AREA.W,
-    (int)(((float)34/DESIGNSH)*SCRN_HEIGHT)
+    40
     };
 const int MENUBAR_CH = 20;
+const int MBH = 12;
 
-//macros to be called on all content area objects
-#define DCX(x) ((x)+CONTENT_AREA.X)
-#define DCY(y) ((y)+CONTENT_AREA.Y)
+
+#define DFCX(x)((x)+CONTENT_AREA.X+)
 
 const FwSizes CONTENT_AREA2 ={
-    CONTENT_AREA.X,129,
+    CONTENT_AREA.X,CONTENT_AREA.Y+MENUBAR_AREA.H,
     CONTENT_AREA.W,
     CONTENT_AREA.H - MENUBAR_AREA.H
     };
+
+//macros to be called on all content area objects
+#define DCX(x) ((x)+CONTENT_AREA.X)
+#define DCY(y) ((y)+CONTENT_AREA2.Y)
+
+#define DMX(x) ((x)+MENUBAR_AREA.X)
+#define DMY(y) ((y)+MENUBAR_AREA.Y)
+
 
 const FwSizes LCLNAV_AREA =  {
     48,70,

@@ -1,9 +1,8 @@
 #ifndef _IUSERINTERFACE_H_
 #define _IUSERINTERFACE_H_
 
-#include "IProductsListDisplay.H"
-#include "ISessionInfoDisplay.h"
 #include "INavDisplay.h"
+#include <IApplicationTypes.H>
 
 enum class UiStatus {
     INITIALISING_UI,
@@ -14,9 +13,9 @@ enum class UiStatus {
 
 class IScreen :public IUserInterface {
     public:
-    const UiStatus status()=0;
+    virtual const UiStatus status()=0;
     virtual void log(string msg)=0;
-    virtual void switchToDisplay(Winny::UserIODevName sn=0); 
+    virtual void switchToDisplay(Winny::UserIODevName sn=(Winny::UserIODevName)0)=0; 
     /*if no pending prompts, switch to screen named sn*/
     virtual ~IScreen(){};
 };
