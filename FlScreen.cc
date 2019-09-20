@@ -1,6 +1,5 @@
 #include "FlScreen.h"
 #include "FlNavDisplay.h"
-#include <FlProductsListDisplay.H>
 #include <FlListDisplay.H>
 #include <FlOffPremiseSaleUserIO.H>
 #include <FlCashFlowDisplay.H>
@@ -8,17 +7,20 @@
 #include "winny_theme.h"
 #include <FWidgetSizes.H>
 #include <FL/fl_ask.H>
+#include <WinnyNames.H>
 
 //#include <PageNames.H>
 #define WBUFSIZE 125 //Screen Titles shouldn't be more than these characters
 
 static void cbGoToPage ( Fl_Widget* w, void* o); 
 
+static IScreen* SCREEN = nullptr;
 
 /*constructor initialises base implementation fl_window with design
  *specification height and width*/
 FlScreen::FlScreen(): Fl_Double_Window(SCRN_WIDTH,SCRN_HEIGHT)
-,current(nullptr){
+,current(nullptr),listTransactionDisplayInstance(nullptr){
+    SCREEN = this;
     init_ui();
     begin();
 
@@ -98,6 +100,10 @@ FlScreen::FlScreen(): Fl_Double_Window(SCRN_WIDTH,SCRN_HEIGHT)
 
 
 
+IScreen* IScreen::screen(){
+    return SCREEN;
+};
+
 
 void FlScreen::writeBuff(MemAddress buff){
     //write roles, operating unit names
@@ -152,6 +158,7 @@ IUserInterface* FlScreen::constructDisplay(Winny::UserIODevName n){
     //first reset sizes to design
     int wid(w()); int hei(h()); int xx(x()); int yy(y());
     resize(xx,yy,SCRN_WIDTH,SCRN_HEIGHT);
+    //UIname tdn; /*for temporary display name, used by sections of code for storage*/
 
     switch (n){
         case Winny::UIOQ_SEARCH_PRODUCTS:
@@ -171,8 +178,28 @@ IUserInterface* FlScreen::constructDisplay(Winny::UserIODevName n){
             break;
 
         case Winny::UIOQ_CREATE_TRANS_GOODS_RECIEVED:
-            ret = new FlStockTransactionDisplay();
+            
+            if(!listTransactionDisplayInstance)
+                listTransactionDisplayInstance = new FlStockTransactionDisplay();
+            ret = listTransactionDisplayInstance; //only one exists..
+            ret->id(NAME_GOODS_RECIEVED_SCREEN);
             break;
+
+        case Winny::UIOQ_CREATE_TRANS_GOODS_DELIVERY:
+
+            if(!listTransactionDisplayInstance)
+                listTransactionDisplayInstance = new FlStockTransactionDisplay();
+            ret = listTransactionDisplayInstance; //only one exists..
+            ret->id(NAME_DELIVERY_SCREEN);
+            break;
+
+        case Winny::UIOQ_CREATE_TRANS_SALES_CREDIT:
+     
+            if(!listTransactionDisplayInstance)
+                listTransactionDisplayInstance = new FlStockTransactionDisplay();
+            ret = listTransactionDisplayInstance; //only one exists..
+            ret->id(NAME_INVOICE_SCREEN);
+            break; 
 
         case Winny::UIOQ_SEARCH_CONTACTS:
              ret = new FlListDisplay();
@@ -226,7 +253,7 @@ void FlScreen::addTomenu(IUserInterface* dev,Winny::UserIODevName devId){
     if(!dev)return;
     Winny::UserIODevName* o;
     o = new Winny::UserIODevName(devId);
-    menus.push_back(o);
+   // menus.push_back(o);
     localNav->add(dev->id().c_str());
     localNav->find_item(dev->id().c_str())->user_data((void*)o );
     localNav->redraw();
@@ -305,11 +332,29 @@ void FlScreen::switchToDisplay(Winny::UserIODevName dname){
 
     }//we get here if exists and binded
         log("found it");
+
+    //first we check and handle special case displays:
+    if( dname==Winny::UIOQ_CREATE_TRANS_SALES_CREDIT)
+        listTransactionDisplayInstance->writeBuff(new Winny::salesInvoice());
+
+    //if( (dname==Winny::uio )
+      //  listTransactionDisplayInstance->writeBuff(new Winny::cashSale());
+        
+    if( dname==Winny::UIOQ_CREATE_TRANS_GOODS_RECIEVED )
+        listTransactionDisplayInstance->writeBuff(new Winny::rsLoadIn());
+
+    if(  dname==Winny::UIOQ_CREATE_TRANS_GOODS_DELIVERY)
+        listTransactionDisplayInstance->writeBuff(new Winny::rsLoadOut());
+
+
        if(current)current->hide();
-        displays.at(dname)->show();
-        current = displays.at(dname);
+        iter->show();
+        current = iter;
         //update title
+        //fl_alert(current->id().c_str());
         std::size_t pos = current->id().find_last_of('/'); //position of title in id string
+        pos++;
+        if(pos>current->id().size())pos = 0;
         titlebox->copy_label(current->id().substr(pos).c_str());
         //redraw();
         return; 
@@ -370,13 +415,7 @@ static void cbGoToPage ( Fl_Widget* w, void* o){
 
 
 
-/*int FlScreen::handle(int e){
-    //tap show event and raise SigUILOADED signal
-    switch (e)
-    {
-    case FL_SHOW:
-        raiseEvent(SigUserIOready,(void*)this);
-        break;
-    }
-    return Fl_Double_Window::handle(e);
-}*/
+ int FlScreen::handle(sEvent,void *eData){
+     return 1;
+ };
+    

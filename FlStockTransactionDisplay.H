@@ -6,36 +6,33 @@
 #include <FL/Fl_Widget.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Input.H>
+#include <FL/Fl_Output.H>
 #include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Menu_Button.H>
 #include <FL/Fl_Box.H>
 #include <dataset_view.h>
 #include <IUserInterface.h>
+#include <transaction.H>
 
 class FlStockTransactionDisplay : public Fl_Group, public IUserInterface{
     public:
-    enum Event {
-        CREATE,EDIT
-    };
-
-    struct Handler {
-        UIname id()=0;
-        void handler(Event e)=0;
-    };
 
     FlStockTransactionDisplay();//pass window;
     void show();
     void hide();
     void update();   
-    UIname id();
     void readBuff(MemAddress buff){buff= nullptr;};
-    void writeBuff(MemAddress buff){buff=nullptr;/*should be implemented */};
-    void attachHandler(FlStockTransactionDisplay::Handler *h);
+    void writeBuff(MemAddress buff);
+    
+    /*Handles uiLib events from Widgets we used to implement this object
+     *w is the widget in question*/
+    void handleUiLib(Fl_Widget* w);
 
     private:
 
-    Handler* hnd;
-    Fl_Input *client, 
+    Winny::load_list* record;
+
+    Fl_Input_ *client, 
              *transactionId, 
              *transactionDate, 
              *productName, 

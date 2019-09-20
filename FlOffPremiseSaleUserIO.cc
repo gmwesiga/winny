@@ -110,5 +110,5 @@ UIname FlOffPremiseSaleUserIO::id(){
 
 void salesRepNameCb(Fl_Widget*o, void* d){
     string s;
-    PromptUser::getProductId(&s);
+   // PromptUser::getProductId(&s);
 };

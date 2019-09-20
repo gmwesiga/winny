@@ -1,7 +1,7 @@
 #ifndef FLCASHFLOWDISPLAY_H
 #define FLCASHFLOWDISPLAY_H
 
-#include <IUserInterface.H>
+#include <IUserInterface.h>
 #include <IExtEventSource.h>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Button.H>

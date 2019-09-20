@@ -1,13 +1,14 @@
 #include<WinnyUserPrompts.H>
-#include<FL\Fl_Window.H>
-#include<FL\Fl_Choice.H>
-#include<FL\Fl_Button.H>
-#include<FL\Fl_Input.H>
-#include<FL\Fl.H>
+#include<FL/Fl_Window.H>
+#include<FL/Fl_Choice.H>
+#include<FL/Fl_Button.H>
+#include<FL/Fl_Input.H>
+#include<FL/Fl.H>
 #include<dataset_view.h>
 #include<IUserInterface.h>
 #include <WinnyNames.H>
 #include <stdio.h>
+#include <FL/fl_ask.H>
 
 static IApplication* app = 0;
 void PromptUser::setApplication(IApplication* a){
@@ -40,7 +41,7 @@ struct getDateDialog {
     Fl_Choice *day;
     Fl_Button *btnOk;
     Fl_Button *btnCancel;
-    Time      *oDate;
+    utils::Time      *oDate;
     int done;
 }dateDialog={
     nullptr,
@@ -61,7 +62,7 @@ void createDateDialog();
 
 
 
-void PromptUser::getDate(Time* out){
+void PromptUser::getDate(utils::Time* out){
     if(!dateDialog.Dialog)
         createDateDialog();
     dateDialog.oDate = out;
@@ -84,7 +85,7 @@ void createDateDialog(){
 
     Fl_Group *t = Fl_Group::current(); 
     Fl_Group::current(nullptr);
-    Time today;//today
+    utils::Time today;//today
     dateDialog.Dialog = new Fl_Window(193,70,"Please Choose A Date");
     dateDialog.Dialog->begin();
         
@@ -156,8 +157,8 @@ int daysInMonth(int month, int year){
 * its necesary as the number of days in feb change with changes in years*/
 void dateChangedcb(Fl_Widget*o, void* d){
 //fill day combo
-    Time dateInput;//what has been selected sorfar
-    Time today;
+    utils::Time dateInput;//what has been selected sorfar
+    utils::Time today;
 
     dateInput.year(dateDialog.year->value()+MINYEAR);
     dateInput.month(dateDialog.month->value()+1);
@@ -205,132 +206,158 @@ void getDateOkcb(Fl_Widget*o, void* d ){
 **we can just pass the variable functional code as arguments. 
 **/
 
-void getValueOkcb(Fl_Widget*o, void* d );
-void getValueCancelcb(Fl_Widget*o, void* d );
-void searchKeyChangedcb(Fl_Widget*o, void* d );
-void createvalueDialog();
-void _createSearchDialog(
-    Fl_Window** dialog,
-    Fl_Input**  searchKey,
-    dataset_view** results,
-    Fl_Button** btnOk,
-    Fl_Button** btnCancel);
+void getValueLibAdptcb(Fl_Widget*o, void* d );//library API adpater. lib requires subscribers to implement this interface
 typedef void (*QueryChangedHandler)(IApplication* app); //should raise the right event to app
 void runDialog();
 
 struct GetValueDialog :IUserInterface{
+    struct Query {
+        /*This is a record containing info of the query and the result*/
+        /*To allow for future changes eg passing more parameters, without
+         *breaking exisiting code, we have but it in its own struct 
+         *To Allow for clients to specify which column to return, a col
+         *Interface is provided*/
+        char* text;
+        void* result; /*To allow clients flexibility of datatypes, we use a void pointer*/
+    };
+
+    GetValueDialog():results_(3,1),done(0){
+        Fl_Group* o = Fl_Window::current(); //Grouping group widget
+        Fl_Group::current(nullptr);//Our Window will not be nested in any other window, 
+        
+        dialog = new Fl_Window(387,384);
+        dialog->begin();
+        
+        searchKey = new Fl_Input(14,29,354,25,"Enter Search Key");
+        searchKey->callback(getValueLibAdptcb,this);
+        set_winny_input_theme(searchKey);
+
+        results = new dataset_view(14,77,356,258,"Matching Results");
+        results->align(FL_ALIGN_TOP_LEFT);
+        results->table_box(WINNY_THIN_BORDERFRAME);
+
+        btnOk = new Fl_Button(277,347,47,21, "Select");
+        set_winny_button_theme(btnOk);
+        btnOk->color(WINNY_BACKGROUND_ACCCOLOR);
+        btnOk->callback(getValueLibAdptcb,this);
+
+        btnCancel = new Fl_Button(324,347,47,21,"Cancel");
+        set_winny_button_theme(btnCancel);
+        btnCancel->callback(getValueLibAdptcb,this);
+
+        dialog->end();
+        dialog->set_modal(); //make it a model dialog
+        Fl_Group::current(o); //leave every thing as you found
+        set_winny_window_theme(dialog);
+
+        value.result = value.text = nullptr;
+    };
+
+    void show(){
+        dialog->label(id().c_str());
+        dialog->position(Fl::event_x_root(), Fl::event_y_root());
+        dialog->show();
+    };
+
+
+    void hide(){
+        dialog->hide();
+    };
+
+
+    void update(){return;};
+    
+    void readBuff(MemAddress buff){
+        //will write into buff, contents of value
+        //assumes buff is of Query* type and points to valid memory
+        ((Query*)buff)->result = value.result;
+        ((Query*)buff)->text = value.text;
+    };
+
+    
+    
+    void writeBuff(MemAddress buff){
+    /*Assumes Buff is a pointer to a dataset. 
+     *Copies it to internal buffer
+     */
+        results_ = *((dataset*)buff); //copy
+    };//matches
+    
+
+
+    void run()
+    {
+        show();
+        do{
+            Fl::wait();
+        }while(!done);
+        hide();
+    };
+    
+    
+    void setQueryHandler(QueryChangedHandler hnd){
+        handler = hnd;
+    };
+
+    private:
     Fl_Window* dialog;
     Fl_Input*  searchKey;
     dataset_view* results;
+    dataset results_;
     Fl_Button* btnOk;
     Fl_Button* btnCancel;
-    string title;
-    void* value;
+    Query value;
     QueryChangedHandler handler;
     int column;
     int done;
 
-    void show(){return;};
-    void hide(){return;};
-    void update(){return;};
-    void readBuff(MemAddress buff){buff = (void*)(searchKey?searchKey->value():"");};//buff gets searchfilter
-    void writeBuff(MemAddress buff){buff=nullptr ;};//matches
-    UIname id(){return "GetValueDialog";};
-    void run(){return;};
+    public:
+    ~GetValueDialog(){
+        Fl::delete_widget( dialog); //dialog deletes the rest
+    }
+
+    void handleLib(Fl_Widget* o){
+        if(o==btnCancel){
+            done = 1;
+        };
+    }
 };
 
-GetValueDialog valueDialog;
-//  {
-//     nullptr,/*dialog*/
-//     nullptr,/*searchKey*/
-//     nullptr,/*results*/
-//     nullptr,/*btnOk*/
-//     nullptr,/*btnCancel*/
-//     "",/*title*/
-//     nullptr,/*value*/
-//     nullptr,/*handler*/
-//     0, /*Column*/
-//     0 /*done*/
-// };
 
 //TEXT/CODE REG
 
 
 
-//Create the dialog if not exists and run it.
-void runDialog(){
-    if(!(valueDialog.dialog))
-        createvalueDialog();
-    valueDialog.dialog->label(valueDialog.title.c_str());
-    valueDialog.dialog->position(Fl::event_x_root(), Fl::event_y_root());
-    valueDialog.dialog->show();
-    //return;
-    do{
-        Fl::wait();
-    }while(!valueDialog.done);
-    valueDialog.done = 0;
 
-}
-
-/*Calls _createSearchDialog to construct the dialog*/
-void createvalueDialog(){
-    _createSearchDialog(
-        &(valueDialog.dialog),
-        &(valueDialog.searchKey),
-        &(valueDialog.results),
-        &(valueDialog.btnOk),
-        &(valueDialog.btnCancel));
-    //set callbacks
-    valueDialog.btnCancel->callback(getValueCancelcb);
-}
-
-
-void getValueCancelcb(Fl_Widget*o, void* d ){
-    if(!valueDialog.dialog)
-        return;
-    valueDialog.dialog->hide();
-    valueDialog.done= 1;
+void getValueLibAdptcb(Fl_Widget*o, void* d ){
+    fl_alert("Begin..");
+    ((GetValueDialog*)d)->handleLib(o);
+    fl_alert("End...");
     
 };
 
 
-
-
-
-/*Constructs a generic search dialog window
-//with a text input for the search key
-//and a list display of matches.*/
-void _createSearchDialog(
-    Fl_Window** dialog,
-    Fl_Input**  searchKey,
-    dataset_view** results,
-    Fl_Button** btnOk,
-    Fl_Button** btnCancel)
-{
-
-    Fl_Group* o = Fl_Window::current(); //Grouping group widget
-    Fl_Group::current(nullptr);//Our Window will not be nested in any other window, 
-    (*dialog) = new Fl_Window(387,384);
-    (*dialog)->begin();
-    (*searchKey) = new Fl_Input(14,29,354,25,"Enter Search Key");
-    (*results) = new dataset_view(14,77,356,258,"Matching Results");
-    (*btnOk) = new Fl_Button(277,347,47,21, "Select");
-    (*btnCancel) = new Fl_Button(324,347,47,21,"Cancel");
-    (*dialog)->end();
-    (*dialog)->set_modal(); //make it a model dialog
-    Fl_Group::current(o); //leave every thing as you found
-}
-
-
-
-
+GetValueDialog dlg;
 void PromptUser::getClientId(string* out){
-    valueDialog.title = "Select A contact.";
-    runDialog();
-};
+  
+    dlg.id("Choose A Client");
+    GetValueDialog::Query qry;
+    dlg.show();
+    dlg.run();
+    //dlg.readBuff(&qry);
+    dlg.hide();
+}
+  
+  
 
 
 void PromptUser::getProductId(string* out){
-    valueDialog.title = "Select A Product";
-    runDialog();
+    dlg.id("Choose A Product");
+    GetValueDialog::Query *qry;
+    dlg.show();
+    dlg.run();
+    dlg.readBuff(qry);
+    //get qry result
+    *out = qry? string((char*)(qry->result)):nullptr;
+    dlg.hide();
 }

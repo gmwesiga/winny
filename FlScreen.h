@@ -39,6 +39,12 @@ class FlScreen : public IScreen, public Fl_Double_Window{
     void writeBuff(MemAddress buff);
     void readBuff(MemAddress buff){buff=nullptr;}
 
+/*To handle cases of some child iopages need to communicate with the main/parent Iscreen
+  we have added handler here: child iopages can send some custome events to the Iscreen
+  or even to the application itself, which then routes them to the Iscreen through handle
+  in addition to this interface, The static function screen returns a global reference */
+    int handle(sEvent,void *eData=nullptr);
+    
     private:
     IUserInterface* constructDisplay(Winny::UserIODevName n);
     /*Returns right IUserInterface that implements name n, null pointer on failur*/
@@ -78,10 +84,15 @@ class FlScreen : public IScreen, public Fl_Double_Window{
     std::map<Winny::UserIODevName,IUserInterface*> displays;
     /*dictonary/list of all screens currently created in memory*/
 
-    std::vector<Winny::UserIODevName *> menus;
+   // std::vector<Winny::UserIODevName *> menus;
     /*Stores Winny::UserIODevName of currently created screens*/
 
     IApplication* _app_;
+
+    IUserInterface *listTransactionDisplayInstance;
+    /*This variable is used to track if a listTransactions Display has already been created
+      the design is such that only one such display exists, and all references point to it
+      initially its false,*/
 };
 
 #endif

@@ -27,10 +27,6 @@ class FlListDisplay : public IUserInterface , public Fl_Group{
     void update();
     void readBuff(MemAddress buff){buff=&queryCond;};//filter to Values list
     void writeBuff(MemAddress buff);//matches
-    UIname id(){return _id_;};
-
-    void id(UIname o){_id_ = o;};
-    /*Sets the name of this display at runtime)*/
     
     void sethandler(typeHandler o){cb = o;};
     /*Sets a handler that specialises the queries made by the display*/
@@ -48,7 +44,6 @@ class FlListDisplay : public IUserInterface , public Fl_Group{
     dataset_view   *itemsList;
     dataset        *output;
     Fl_Box         *menuBarResizer;
-    UIname _id_;
     typeHandler cb;
     Winny::QueryCond queryCond;
 };

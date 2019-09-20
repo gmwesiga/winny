@@ -5,10 +5,10 @@
 #include <WinnyUserPrompts.H>
 #include <gmtime.h>
 
-using utils::Time;
+//using utils::Time;
 
 void getDatecb(Fl_Widget*o, void* d){
-    Time t;
+    utils::Time t;
     PromptUser::getDate(&t);
     ((Fl_Output*)o)->value(t.to_string().c_str());
 };
@@ -35,7 +35,7 @@ FlCashFlowDisplay::FlCashFlowDisplay()
     optCashFlowType->color(WINNY_BACKGROUND_DOMCOLOR);
     optCashFlowType->value(0);
     optCashFlowType->down_box(WINNY_THICK_BORDERBOX);
-    Time t;
+    utils::Time t;
     txtBeginDate = new Fl_Output(DCX(2),DCY(comMenuY),98, comMenuH,"Begin Date");
     set_winny_input_theme(txtBeginDate);
     txtBeginDate->value(t.sdate().c_str());

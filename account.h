@@ -7,7 +7,7 @@
 using std::string;
 using std::vector;
 
-namespace winny{
+namespace Winny{
 
 typedef utils::Time Date; 
 

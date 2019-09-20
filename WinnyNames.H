@@ -12,5 +12,9 @@
 #define NAME_CREATE_CONTACT_SCREEN "Contacts Management /  New"
 #define NAME_EDIT_CONTACT_SCREEN "Contacts Management / Edit"
 #define NAME_CASH_FLOW_SCREEN "Cash and Debt Monitoring / CashFlow"
+#define NAME_GOODS_RECIEVED_SCREEN "Transactions/Goods Recieved Note"
+#define NAME_INVOICE_SCREEN "Transactions/Invoice Note"
+#define NAME_DELIVERY_SCREEN "Transactions/Delivery Note"
+#define NAME_CASH_SALE_SCREEN "Transactions/Cash Sale Reciept"
 
 #endif

@@ -2,6 +2,7 @@
 #define IUserInterface_h
 #include <string>
 #include <IExtEventSource.h>
+//#include <IScreen.h>
 
 typedef std::string UIname; // name of IUserInterface Name
 #define MemAddress void*
@@ -11,7 +12,11 @@ class IUserInterface :  public virtual StdSystem::IExtEventSource {
     virtual void show()=0;
     virtual void hide()=0;
     virtual void update()=0;
-    virtual UIname id()=0;
+    
+    /*get id is virtual so that IOs that want static names can customise it*/   
+    virtual UIname id(){return _id_;};
+    void id(UIname s){_id_ =s;};
+
     virtual void readBuff(MemAddress buff)=0;
     /*readBuff is called by the application to input data from UI
      *buff points to the copied data, depending on how the derived io 
@@ -30,6 +35,9 @@ class IUserInterface :  public virtual StdSystem::IExtEventSource {
     virtual void run(){return;};//default is do nothing
 
     virtual ~IUserInterface(){};
+
+    private:
+    UIname _id_;
 };
 
 #endif

@@ -25,7 +25,7 @@ static void winProc ( Fl_Widget* w, void* o);
 
 FlListDisplay::FlListDisplay()
     :Fl_Group(CONTENT_AREA.X,CONTENT_AREA.Y,CONTENT_AREA.W,CONTENT_AREA.H)
-    ,output(nullptr)
+    ,output(nullptr), cb(nullptr)
     {
         begin();
         box(WINNY_NO_BORDERBOX);
@@ -99,7 +99,7 @@ FlListDisplay::FlListDisplay()
 
     void FlListDisplay::update(){
         if(!cb)return;
-        cb(this,(int)Query::REFRESH);
+        //cb(this,(int)Query::REFRESH);
         Fl_Group::redraw();
     }
 
