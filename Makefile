@@ -11,9 +11,9 @@ commonUIHeaders = FWidgetSizes.H winny_theme.h WinnyUserPrompts.H
 FLDLIBS = -lfltk_images -lfltk_png -lfltk_z -lfltk -lpthread -ldl -lm -lX11
 
 FLDFLAGS = -L/usr/local/lib
-FLCXXFLAGS = -I. -I/usr/local/include -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE \
+FLCXXFLAGS = -g -I. -I/usr/local/include -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE \
               -D_THREAD_SAFE -D_REENTRANT  -std=gnu++11 #FLCXXFLAGS = FLTK CXX FLAGS
-
+#remember to remove -g option in production
 CXXFLAGS += $(FLCXXFLAGS)
 LDLIBS += $(FLDLIBS)
 LDFLAGS += $(FLDFLAGS)

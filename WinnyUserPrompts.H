@@ -1,6 +1,7 @@
 #ifndef WinnyUserPrompts_H
 #define WinnyUserPrompts_H
 #include <gmtime.h>
+#include <gmdataset.h>//to get varialbe
 #include <IApplication.h>
 #include <string>
 //using utils::Time;
@@ -16,8 +17,8 @@ class PromptUser{
     /*Prompts user to select a date using a date picker
      *blocks until user dismisses prompt after entering 
      *date. */
-    static void getClientId(string *out);
-    static void getProductId(string *out);
+    static void getClientId(variable *out);
+    static void getProductId(variable *out);
 };
 
 #endif

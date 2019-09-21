@@ -92,7 +92,7 @@ variable::variable(Object* v){
 
 //destructor. free memory
 variable::~variable(){
-    if (_cstring) delete[] _cstring;
+    if (_type==CSTRING && _cstring) delete[] _cstring;
 }
 
 // returns string previosly stored with cstring()
