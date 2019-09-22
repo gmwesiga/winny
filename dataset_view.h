@@ -25,7 +25,9 @@ class dataset_view : public Fl_Table
   public:
     //constructor
     dataset_view(int x, int y, int w, int h, const char* L=0);    
-	  void refresh()const;
+	  void refresh(){
+      redraw();
+    };
     
     dataset *get_dataset()const { return data_; }
     void attach_dataset( dataset* d);

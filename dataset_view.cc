@@ -219,7 +219,7 @@ int dataset_view::handle(int e){
 		   
            case FL_PUSH: 
             cxt = cursor2rowcol(R,C,rf);
-            if (cxt!=CONTEXT_CELL){
+            if (!rows() ||cxt!=CONTEXT_CELL){
                 //need to call redraw, if not, some cases,
                 //portions of view get invalidated
                 //redraw_range(toprow,botrow,0,rightcol);
@@ -233,9 +233,10 @@ int dataset_view::handle(int e){
             //redraw();
 
             take_focus();//prepare to use keyboard nav
+            set_changed();
             if(when()&FL_WHEN_CHANGED ||when()&FL_WHEN_RELEASE ||when()&FL_WHEN_ENTER_KEY)
                 do_callback(cxt,R,C);
-            return 0;//don't send '
+            return 1;//don't send '
 		   
            case FL_KEYDOWN:
             switch(Fl::event_key()){
@@ -270,6 +271,7 @@ int dataset_view::handle(int e){
                 //redraw();
                
                 take_focus();
+                set_changed();
                 if(when()&FL_WHEN_CHANGED ||when()&FL_WHEN_RELEASE ||when()&FL_WHEN_ENTER_KEY)
                     do_callback(cxt,R,C);
                 return 1;//don't send '   

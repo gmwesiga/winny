@@ -23,6 +23,8 @@ _cheaders(c, ""),_rheaders(r,"")
     }
 };
 
+
+
 //calls handler functions registered by any subscribers to change events 
 //passing instance
 void dataset::call_listeners()
@@ -130,7 +132,16 @@ void dataset::set_rows(int num)
         _rheaders.resize(num,mydef );
         r=num;
         call_listeners();
+        return;
     }
+    if(num==0 && r>0){
+        _data.clear();
+        _rheaders.clear();
+        r=num;
+        call_listeners();
+        return;
+    }
+   // throw "Error in dataset::set_rows, num is out of range, must be 0 or +ve";
     //printf("out of set_rows");
 };
 

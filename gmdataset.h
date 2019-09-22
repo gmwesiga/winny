@@ -139,7 +139,7 @@ class dataset {
     void pause_events();
     void resume_events();
     int is_publishing_events();
-
+   // dataset& operator=(const dataset& other);
 
     private:
     int r, c, publishing;

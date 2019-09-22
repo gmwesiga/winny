@@ -206,9 +206,9 @@ void getDateOkcb(Fl_Widget*o, void* d ){
 **the same, I have realised they should share the structral code... which
 **we can just pass the variable functional code as arguments. 
 **/
-
+struct GetValueDialog;
 void getValueLibAdptcb(Fl_Widget*o, void* d );//library API adpater. lib requires subscribers to implement this interface
-typedef void (*QueryChangedHandler)(IApplication* app); //should raise the right event to app
+typedef void (*QueryChangedHandler)(IApplication* app,GetValueDialog* o); //should raise the right event to app
 void runDialog();
 
 struct GetValueDialog :IUserInterface{
@@ -222,7 +222,7 @@ struct GetValueDialog :IUserInterface{
         variable result; /*To allow clients flexibility of datatypes, we use a void pointer*/
     };
 
-    GetValueDialog():results_(3,1),done(0),changed(0),handler(nullptr){
+    GetValueDialog():results_(0,0),done(0),changed(0),handler(nullptr){
         Fl_Group* o = Fl_Window::current(); //Grouping group widget
         Fl_Group::current(nullptr);//Our Window will not be nested in any other window, 
         
@@ -236,7 +236,11 @@ struct GetValueDialog :IUserInterface{
 
         results = new dataset_view(14,77,356,258,"Matching Results");
         results->align(FL_ALIGN_TOP_LEFT);
+        results->callback(getValueLibAdptcb,this);
+        results->when(FL_WHEN_CHANGED);
         results->box(WINNY_THIN_BORDERFRAME);
+        results->attach_dataset(&results_);
+        results->col_auto_resize();
 
         btnOk = new Fl_Button(277,347,47,21, "Select");
         set_winny_button_theme(btnOk);
@@ -256,15 +260,19 @@ struct GetValueDialog :IUserInterface{
     };
 
     void show(){
+        results_.set_rows(0);
+        searchKey->take_focus();
+        done=0;//reset
         dialog->label(id().c_str());
-        dialog->position(Fl::event_x_root(), Fl::event_y_root());
+        int x = Fl::first_window()->x_root()+((double)(Fl::first_window()->w())/2 - (double)dialog->w()/2);
+        int y = Fl::first_window()->y_root()+(((double)(Fl::first_window()->h())/2 - (double)dialog->h()/2))/1;
+        dialog->position(x,y);
         dialog->show();
     };
 
 
     void hide(){
         dialog->hide();
-        done=0;//reset
     };
 
 
@@ -289,6 +297,7 @@ struct GetValueDialog :IUserInterface{
      *Copies it to internal buffer
      */
         results_ = *((dataset*)buff); //copy
+        results->attach_dataset(&results_);
     };//matches
     
 
@@ -299,7 +308,7 @@ struct GetValueDialog :IUserInterface{
         do{
             Fl::wait();
         }while(!done);
-        fl_alert("Out of loop");
+        //fl_alert("Out of loop");
     };
     
     
@@ -338,7 +347,20 @@ struct GetValueDialog :IUserInterface{
 
         if(o==searchKey){
             //call handler, we have new search..
-            if(handler)handler(app);
+            if(handler)handler(app,this);
+            searchKey->take_focus();
+        }
+
+        if(o==results){
+            //user has selected
+            if (results->changed())
+            {
+                value.result = results_.data(results->selected(),column);
+                done =1;
+                changed = 1;
+                results_.set_rows(0);
+            }
+            //fl_alert("results called");
         }
 
     }
@@ -357,15 +379,17 @@ void getValueLibAdptcb(Fl_Widget*o, void* d ){
 };
 
 
-GetValueDialog dlg;
+
 /*Seems deleting windows while program is running is not a good idea
 * try puting this dlg as a local variable in one of the prompt programs to check*/
 void PromptUser::getClientId(variable* out){
-
+GetValueDialog dlg;
     dlg.id("Choose A Client");
     GetValueDialog::Query qry;
+    dlg.setQueryHandler(nullptr);
     dlg.show();
     dlg.run();
+
     dlg.readBuff(&qry);//get the result
     (*out) = qry.result;//pass to client
     dlg.hide();//close
@@ -373,13 +397,32 @@ void PromptUser::getClientId(variable* out){
   
   
 
+void getProducts(StdSystem::IApplication *app, GetValueDialog* o){
+    
+   // fl_alert("in product's handler");
+    GetValueDialog::Query qry;
+    o->readBuff(&qry);//get the query
+    //use application to query somehow
+    dataset res(2,4); //results
+    res.data(0,0,"300ML Full Good");
+    res.data(0,1,"35000");
+    res.data(1,0,"1000ML Full Good");
+    res.data(1,1,"35000");
+    res.set_col_header(0,"Product");
+    res.set_col_header(1,"Price");
+    o->writeBuff(&res);
+
+}
 
 void PromptUser::getProductId(variable* out){
+    GetValueDialog dlg;
     dlg.id("Choose A Product");
+    dlg.setQueryHandler(getProducts);
     GetValueDialog::Query qry;
     dlg.show();
     dlg.run();
     dlg.readBuff(&qry);//get the result
     *out = qry.result;//pass to client
+    //fl_alert("..");
     dlg.hide();//close
 }

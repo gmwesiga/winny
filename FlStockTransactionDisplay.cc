@@ -13,6 +13,7 @@ using utils::Time;
 to adopt our uiLibHandler
 to the fltkCallback interface*/
 static void fltkCallback(Fl_Widget* w, void* o){
+    if(Fl::event()==FL_DRAG)return;//only interested in clicks and keyboard
     ((FlStockTransactionDisplay*)o)->handleUiLib(w);
 };
 
@@ -102,6 +103,7 @@ listItems(0,4),record(nullptr)
 
     items = new dataset_view(DCX(26),DCY(280),420,210);
     items->box(WINNY_TOP_BORDERBOX);
+    items->col_auto_resize();
 
     amountPaid = new Fl_Input(DCX(26),DCY(512),106,SLWH,"Paid");
     set_winny_input_theme(amountPaid);
@@ -181,25 +183,37 @@ void FlStockTransactionDisplay::handleUiLib(Fl_Widget* w){
     }
    
    if (w==client){
+       //w->deactivate();//workaround a bug where sometimes dialog events are sent back here
        PromptUser::getClientId(&s);
        if (s.type()==data_kind::CSTRING){
             client->value(s.cstring());
             record->clientId(s.cstring());
        }
+      // w->activate();
        return;
    }
 
    if (w==productName){
-       //PromptUser::getProductId(&s);
-       //productName->value(s.c_str());
+     //  w->deactivate();
+       PromptUser::getProductId(&s);
+        if (s.type()==data_kind::CSTRING){
+            record->clientId(s.cstring());
+            productName->value(s.cstring());
+            itemQty->value("0");
+            btnAdd->activate();
+       }
+     //  w->activate();
    }
 
    if(w==btnAdd){
-       int lastrow = listItems.rows();
-       listItems.set_rows(lastrow++);
        if(productName->value()){
+            int lastrow = listItems.rows();
+            listItems.set_rows(lastrow +1);
+           //fl_alert("btnAdd called");
             listItems.data(lastrow,0,productName->value());
             listItems.data(lastrow,1,itemQty->value());
+            //add it to record
+            //....
        }
       
    }
