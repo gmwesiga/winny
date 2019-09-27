@@ -77,6 +77,7 @@ void winny_thin_border_frame(int x, int y, int w, int h, Fl_Color c );
 void winny_no_border_box(int x, int y, int w, int h, Fl_Color c );
 void winny_bottom_border_box(int x, int y, int w, int h, Fl_Color c );
 void winny_top_border_box(int x, int y, int w, int h, Fl_Color c );
+void winny_thin_border_frame(int x, int y, int w, int h, Fl_Color c );
 
   #define WINNY_THIN_BORDERBOX (Fl_Boxtype)(FL_FREE_BOXTYPE)
   #define WINNY_THICK_BORDERBOX (Fl_Boxtype)(WINNY_THIN_BORDERBOX+1) //NOT IMPLEMENTED
@@ -87,5 +88,6 @@ void winny_top_border_box(int x, int y, int w, int h, Fl_Color c );
   #define WINNY_NO_BORDERBOX (Fl_Boxtype)(WINNY_THIN_BORDERBOX +6)
   #define WINNY_TOP_BORDERBOX (Fl_Boxtype)(WINNY_THIN_BORDERBOX +7)
   #define WINNY_BOTTOM_BORDERBOX (Fl_Boxtype)(WINNY_THIN_BORDERBOX +8)
+  #define WINNY_TOP_BORDERFRAME (Fl_Boxtype)(WINNY_THIN_BORDERBOX +9)
 
 #endif

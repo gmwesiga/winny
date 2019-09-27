@@ -1,3 +1,22 @@
 6 SEPT 2019:
         My laptop is my girlfriend, n need to search another
         **Modified FLListDisplay to use one Fl Callback for all its child windows.
+
+
+To do:
+        
+
+Notes:
+        DISPLAY NAMING SCHEME.
+        Naming of displays is as follows. Winny::Application, the controller defines a set of names.
+        and requires the UI::screen to have implemented them. All its messages (protocal) between. the
+        controller and the UI module use these names. Each name is unique. the names are defined in a 
+        general header and any module that wishes to communicate a screen command uses these.
+        
+        on startup, winny extracts a user's role, which is a set of display names that the user has 
+        access to. and writes it in its state object. it starts the screen, and writes it's state to the
+        screen. the screen passes the role set to constructdisplay function, which for each screen name
+        in the role list,  it calls a constructor the rightful display. and inserts it in the display table
+        and updates the general user menue with that display's id()/description string, and stores in each
+        display its name (probable we need to change this so that displays nave an id to return name of screen
+        they implement)

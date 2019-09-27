@@ -41,6 +41,12 @@ void winny_top_border_box(int x, int y, int w, int h, Fl_Color c )
   fl_line(x,y,x+w, y);
 }
 
+void winny_top_border_frame(int x, int y, int w, int h, Fl_Color c )
+{
+  fl_color(GRIDLINE_COLOR());
+  fl_line(x,y,x+w, y);
+}
+
 void winny_bottom_border_box(int x, int y, int w, int h, Fl_Color c )
 {
   fl_color(c);
@@ -65,11 +71,13 @@ void init_ui(void){
  Fl::set_boxtype(WINNY_NO_BORDERBOX,winny_no_border_box, 1,1,2,2);
  Fl::set_boxtype(WINNY_TOP_BORDERBOX,winny_top_border_box, 1,1,2,2);
  Fl::set_boxtype(WINNY_BOTTOM_BORDERBOX,winny_bottom_border_box, 1,1,2,2);
+ Fl::set_boxtype(WINNY_TOP_BORDERFRAME,winny_top_border_frame, 1,1,2,2);
  is_init = 1; 
 }
 
 void set_winny_input_theme(Fl_Input_*w){
-    w->color(DOMWGT_COLOR());
+    //w->color(DOMWGT_COLOR());
+    w->color(FL_WHITE);
     w->labelcolor(WINNY_NORMALTEXT_COLOR); 
     w->textcolor(WINNY_NORMALTEXT_COLOR); //text color;
     w->labelsize(WINNY_NORMALTEXT_FONTSIZE); 
@@ -107,7 +115,7 @@ void set_winny_button_theme(Fl_Widget*w){
     w->labelsize(WINNY_NORMALTEXT_FONTSIZE); 
     //w->textsize(DOMFONT_SIZE());   //text size
     w->box(WINNY_THICK_BORDERBOX);
-    w->selection_color(SELECTION_BACKCOLOR2());
+    w->selection_color(fl_rgb_color(213,213,213));
 };
 
 void set_winny_group_theme(Fl_Group*w){
@@ -121,7 +129,8 @@ void set_winny_group_theme(Fl_Group*w){
 
 void set_winny_scroll_theme (Fl_Scroll *w){
   w->scrollbar.slider(WINNY_THIN_BORDERFRAME);
-  w->scrollbar.color(fl_rgb_color(241,241,249));//very pale blue
+  w->scrollbar.color(/*"fl_rgb_color(213,213,213)"*/WINNY_BACKGROUND_DOMCOLOR);
+  //w->scrollbar.type(FL_VERT_NICE_SLIDER);
   w->hscrollbar.slider(WINNY_THINDOWN_BORDERBOX);
   //w->scrollbar.slider.color(fl_rgb_color(241,241,249));
 };

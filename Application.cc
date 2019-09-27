@@ -68,23 +68,28 @@ void Application::navigate (Winny::UserIODevName* n){
 };
 
  int Application::productListUpdate(void* o){
-     //do some queries
-     IUserInterface* io = (IUserInterface*)o;
-     Winny::ProductsListFilter *fltr;
-     //io->readBuff(fltr);
-     //if (fltr->)
+     //ideally we would do some  queries and return but for now
 
-     //update
+     //o is address of a FListDisplay
+     IUserInterface* io = (IUserInterface*)o;
+     
+     //o->writebuff() expects a Query*
+     Winny::Query qry;
+
 
      /* string*/double s(10);//*std::;
      variable data;
 
-     int rc = 50; int cc = 3;
+    //sizes of our dataset response //lets use response and request terms
+     int rc = 50; int cc = 10; 
+
+    //output shall hold our response
     Winny::Dataset output(rc,cc);
-    // output.resize(rc);
+
+    //populate it with some garbage data for now
      for (int r=0; r<rc; r++){
          for (int c=0; c<cc; c++){
-            data.number(s*rand());
+            data.number((r)*rand());
             output.data(r,c,data);
             if(output.data(r,c).number()>300000){
                 output.data(r,c).style().forecolor = wcolor(0,125,12);
@@ -93,12 +98,17 @@ void Application::navigate (Winny::UserIODevName* n){
             output.data(r,c).style().borders = Borders::LEFT_RIGHT_BORDER;
             
          }
-         output.data(r,0).cstring("some very long long long stupid text");
+        // output.data(r,0).cstring("some very long long long stupid text");
      }
-    Winny::ProductsListParams out;
-    out.outPut =& output;
-    io->writeBuff(&out);
-    userIO->log("What the fuck***");
+
+    //prepare response put in expected data struct format
+    qry.outPut =& output;
+
+    //write to output
+    io->writeBuff(&qry);
+
+    //log in console
+    userIO->log("Product list has been updated...");
      return 1;
  }
 

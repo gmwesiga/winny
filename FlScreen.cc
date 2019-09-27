@@ -40,11 +40,13 @@ FlScreen::FlScreen(): Fl_Double_Window(SCRN_WIDTH,SCRN_HEIGHT)
     logo->labelsize(9);
     logo->align(FL_ALIGN_INSIDE|FL_ALIGN_LEFT_TOP);
     logo->labelcolor(WINNY_LINKTEXT_COLOR);
+    logo->labelfont(WINNY_BOLDFONT);
     
     shopNameLbl = new Fl_Box(DX(50),DY(29),172,21,"Xyz Test Enterprises");
     shopNameLbl->align(FL_ALIGN_INSIDE|FL_ALIGN_LEFT_TOP);
     shopNameLbl->labelsize(11);
     shopNameLbl->labelcolor(WINNY_NORMALTEXT_COLOR);
+    shopNameLbl->labelfont(WINNY_BOLDFONT);
 
     switchShopBtn = new Fl_Menu_Button(DX(882),DY(29),80,21,"Switch Shop");
     switchShopBtn->box(WINNY_NO_BORDERBOX);
@@ -204,7 +206,7 @@ IUserInterface* FlScreen::constructDisplay(Winny::UserIODevName n){
         case Winny::UIOQ_SEARCH_CONTACTS:
              ret = new FlListDisplay();
              ((FlListDisplay*)ret)->id("Contact Management / Search");
-             ((FlListDisplay*)ret)->sethandler(productListCb);
+             ((FlListDisplay*)ret)->sethandler(nullptr);
             break;
 
         case Winny::UIOQ_CREATE_CONTACT:

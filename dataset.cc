@@ -128,8 +128,8 @@ void dataset::set_rows(int num)
 {//resizes the rows
     //printf("in setrows");
     if(num>0){
-        _data.resize(num,vector<table_data>(c,mydef));
-        _rheaders.resize(num,mydef );
+        _data.resize(num,vector<table_data>(c,""));
+        _rheaders.resize(num,"" );
         r=num;
         call_listeners();
         return;
@@ -149,7 +149,7 @@ void dataset::set_cols(int num)
 {//resizes the rows
     if (num>0){
         for(unsigned int i=0; i<_data.size(); ++i){
-            _data[i].resize(num, mydef);
+            _data[i].resize(num, "");
         }
         _cheaders.resize(num, mydef);
         c=num;

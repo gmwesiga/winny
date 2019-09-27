@@ -23,14 +23,16 @@ FlNotificationDisplay::FlNotificationDisplay()
         NOTFCN_AREA.W-xoffset*2,MINHGHT,LABEL);
     view->box(WINNY_THIN_BORDERBOX);
     view->color(FL_WHITE);
-    view->scrollbar.type(FL_VERT_NICE_SLIDER);
-    view->scrollbar.slider(WINNY_THICK_BORDERBOX);
-    view->scrollbar.color(color());
-    view->textcolor(WINNY_NORMALTEXT_COLOR);
+    //view->scrollbar.type(FL_VERT_NICE_SLIDER);
+    //view->scrollbar.slider(WINNY_THICK_BORDERBOX);
+    //view->scrollbar.color(color());
+    //view->textcolor(WINNY_NORMALTEXT_COLOR);
     //view->callback(cb,(void*)this);
     view->align(FL_ALIGN_TOP_LEFT);
     view->textsize(WINNY_NORMALTEXT_FONTSIZE);
-    view->has_scrollbar(Fl_Browser::VERTICAL);
+    
+    /*No scroll bar*/
+    view->has_scrollbar(0);
     view->selection_color(SELECTION_BACKCOLOR());
     minimise();
     end();

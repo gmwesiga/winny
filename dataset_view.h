@@ -31,7 +31,7 @@ class dataset_view : public Fl_Table
     
     dataset *get_dataset()const { return data_; }
     void attach_dataset( dataset* d);
-    int selected()const{return dsv_select_row;};    
+    int selected()const{return select_row;};    
     
     void draw_cell(TableContext context, int R=0, int C=0, int X=0, int Y=0, int W=0, int H=0) override;
     int handle(int e) override;
@@ -93,6 +93,7 @@ class flObject:public Object{
 
   private:
     Fl_Widget* _flobject;
+    
 };
 
 #endif

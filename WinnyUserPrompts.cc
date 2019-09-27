@@ -59,6 +59,7 @@ struct getDateDialog {
 void getDateOkcb(Fl_Widget*o, void* d );
 void getDateCancelcb(Fl_Widget*o, void* d );
 void dateChangedcb(Fl_Widget*o, void* d );
+void dialogcb(Fl_Widget*o, void* d );
 void createDateDialog();
 
 
@@ -89,6 +90,7 @@ void createDateDialog(){
     utils::Time today;//today
     dateDialog.Dialog = new Fl_Window(193,70,"Please Choose A Date");
     dateDialog.Dialog->begin();
+    dateDialog.Dialog->callback(getDateCancelcb);
         
         dateDialog.year = new Fl_Choice(10,16,57,20);
         dateDialog.year->callback(dateChangedcb,&dateDialog);
@@ -222,23 +224,25 @@ struct GetValueDialog :IUserInterface{
         variable result; /*To allow clients flexibility of datatypes, we use a void pointer*/
     };
 
-    GetValueDialog():results_(0,0),done(0),changed(0),handler(nullptr){
+    GetValueDialog():results_(0,0),done(0),changed(0),handler(nullptr),column(0), record_selected(-1){
         Fl_Group* o = Fl_Window::current(); //Grouping group widget
         Fl_Group::current(nullptr);//Our Window will not be nested in any other window, 
         
         dialog = new Fl_Window(387,384);
         dialog->begin();
-        //dialog->callback(getValueLibAdptcb,this);
+        dialog->callback(getValueLibAdptcb,this);
         
         searchKey = new Fl_Input(14,SLWH,354,25,"Enter Search Key");
         searchKey->callback(getValueLibAdptcb,this);
         set_winny_input_theme(searchKey);
+        searchKey->when(FL_WHEN_CHANGED);
 
         results = new dataset_view(14,77,356,258,"Matching Results");
         results->align(FL_ALIGN_TOP_LEFT);
         results->callback(getValueLibAdptcb,this);
         results->when(FL_WHEN_CHANGED);
-        results->box(WINNY_THIN_BORDERFRAME);
+        results->box(WINNY_THIN_BORDERFRAME);//must always be frame
+        //results->table_box(WINNY_TOP_BORDERBOX);
         results->attach_dataset(&results_);
         results->col_auto_resize();
 
@@ -260,13 +264,15 @@ struct GetValueDialog :IUserInterface{
     };
 
     void show(){
-        results_.set_rows(0);
+        
+        //results_.set_rows(0);
         searchKey->take_focus();
         done=0;//reset
         dialog->label(id().c_str());
         int x = Fl::first_window()->x_root()+((double)(Fl::first_window()->w())/2 - (double)dialog->w()/2);
         int y = Fl::first_window()->y_root()+(((double)(Fl::first_window()->h())/2 - (double)dialog->h()/2))/1;
         dialog->position(x,y);
+        if(handler)handler(app,this);
         dialog->show();
     };
 
@@ -333,6 +339,8 @@ struct GetValueDialog :IUserInterface{
         Fl::delete_widget(dialog); //dialog deletes the rest
     }
 
+
+    int record_selected;
     void handleLib(Fl_Widget* o){
 
         if(o==btnCancel){
@@ -341,8 +349,13 @@ struct GetValueDialog :IUserInterface{
 
         if(o==btnOk){
             done = 1;
-            //set result
-            //value.result = results_.data(results->selected(),column);
+            int r = results->selected();
+            if(r<0 || r >= results_.rows())return;
+            value.result = results_.data(r,column);
+            done =1;
+            changed = 1;
+            results_.set_rows(0);
+
         }
 
         if(o==searchKey){
@@ -353,14 +366,22 @@ struct GetValueDialog :IUserInterface{
 
         if(o==results){
             //user has selected
-            if (results->changed())
+            if (results->callback_context()==Fl_Table::CONTEXT_CELL)
             {
-                value.result = results_.data(results->selected(),column);
+                int r = results->selected();
+                if(r!=record_selected){record_selected=r; return;}//simulate double click/ require double click
+                if(r<0 || r >= results_.rows())return;
+                value.result = results_.data(r,column);
                 done =1;
                 changed = 1;
                 results_.set_rows(0);
             }
             //fl_alert("results called");
+        }
+
+        if (o==dialog){
+            done=1;
+            dialog->hide();
         }
 
     }

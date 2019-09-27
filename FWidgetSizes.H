@@ -35,6 +35,7 @@ const FwSizes MENUBAR_AREA = {
     };
 const int MENUBAR_CH = 20;
 const int MBH = 12;
+//int MBY=MBH;
 
 
 #define DFCX(x)((x)+CONTENT_AREA.X+)

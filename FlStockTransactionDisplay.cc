@@ -6,6 +6,8 @@
 #include <gmtime.h>
 #include <IScreen.h>
 #include <FL/fl_ask.H>
+#include <FL/names.h>
+#include <convert.h>
 
 using utils::Time;
 
@@ -13,7 +15,7 @@ using utils::Time;
 to adopt our uiLibHandler
 to the fltkCallback interface*/
 static void fltkCallback(Fl_Widget* w, void* o){
-    if(Fl::event()==FL_DRAG)return;//only interested in clicks and keyboard
+    //if(Fl::event()==FL_DRAG)return;//only interested in clicks and keyboard
     ((FlStockTransactionDisplay*)o)->handleUiLib(w);
 };
 
@@ -22,6 +24,7 @@ FlStockTransactionDisplay::FlStockTransactionDisplay():
 Fl_Group(CONTENT_AREA.X,CONTENT_AREA.Y,CONTENT_AREA.W,CONTENT_AREA.H),
 listItems(0,4),record(nullptr)
 {
+
     begin();
     thePage = new Fl_Scroll(DCX(0),DCY(0),CONTENT_AREA.W,CONTENT_AREA2.H);
     set_winny_scroll_theme(thePage);
@@ -63,17 +66,19 @@ listItems(0,4),record(nullptr)
 
     holrule2 = new Fl_Box(DCX(26),DCY(161),422,1,"Particulars");
     holrule2->box(WINNY_TOP_BORDERBOX);
+    holrule2->labelfont(WINNY_BOLDFONT);
     holrule2->align(FL_ALIGN_TOP_LEFT);
 
     addItemFrame = new Fl_Box(DCX(26),DCY(190),422,59,"Add New");
-    addItemFrame->box(WINNY_THIN_BORDERFRAME);
+    addItemFrame->box(WINNY_THIN_BORDERBOX);
     addItemFrame->align(FL_ALIGN_TOP_LEFT);
+    addItemFrame->labelfont(WINNY_BOLDFONT);
 
     productName = new Fl_Output(DCX(41),DCY(215),111,SLWH,"Product");
     set_winny_input_theme(productName);
     productName->callback(fltkCallback, this);
 
-    itemQty = new Fl_Input(DCX(155),DCY(215),40,SLWH,"Qty");
+    itemQty = new Fl_Int_Input(DCX(155),DCY(215),40,SLWH,"Qty");
     set_winny_input_theme(itemQty);
 
     itemRate = new Fl_Input(DCX(198),DCY(215),78,SLWH,"Rate");
@@ -92,25 +97,33 @@ listItems(0,4),record(nullptr)
     btnEdit = new Fl_Button(DCX(27),DCY(259),45,16,"Edit");
     set_winny_button_theme(btnEdit);
     btnEdit->callback(fltkCallback, this);
+    btnEdit->deactivate();
 
     btnclear = new Fl_Button(DCX(71),DCY(259),45,16,"Clear");
     set_winny_button_theme(btnclear);
     btnclear->callback(fltkCallback, this);
+    btnclear->deactivate();
 
     btnClearAll = new Fl_Button(DCX(116),DCY(259),56,16,"Clear All");
     set_winny_button_theme(btnClearAll);
     btnClearAll->callback(fltkCallback, this);
+    btnClearAll->when(FL_WHEN_RELEASE_ALWAYS);
+    btnClearAll->deactivate();
+    btnClearAll->shortcut(FL_ALT+'d');
 
     items = new dataset_view(DCX(26),DCY(280),420,210);
-    items->box(WINNY_TOP_BORDERBOX);
+    items->box(WINNY_TOP_BORDERFRAME);
+    //items->table_box(WINNY_TOP_BORDERBOX);
     items->col_auto_resize();
+    items->col_header(1);
 
     amountPaid = new Fl_Input(DCX(26),DCY(512),106,SLWH,"Paid");
     set_winny_input_theme(amountPaid);
-    amountPaid->deactivate();
+    //amountPaid->deactivate();
 
     transactionAmount = new Fl_Input(DCX(343),DCY(512),106,SLWH,"Amount");
     set_winny_input_theme(transactionAmount);
+    transactionAmount->deactivate();
 
     thePage->end();
     
@@ -164,13 +177,38 @@ void FlStockTransactionDisplay::hide(){
 
 
 void FlStockTransactionDisplay::writeBuff(MemAddress buff){
+    //clear
+    transactionId->value(nullptr);
+    client->value(nullptr);
+    listItems.set_rows(0); //reset
+    amountPaid->value(nullptr);
+    transactionAmount->value(nullptr);
+
     if(record) delete record;
     record = (Winny::load_list*)buff;
-    doctype =record->docType();
+
+    transactionDate->value(record->transactionDate().sdate().c_str()); //copy date
+    doctype =record->docType(); //copy doctype
     FlStockTransactionDisplay::id(doctype);
     title->label(doctype.c_str());
     transactionId->label(doctype.c_str());
+    transactionId->value(Convert::doubleToCstr(record->number())); //copy id
     IScreen::screen()->log("doctype is ..."+ doctype);
+
+    double amt=0.0;
+    auto itm = record->lineItems().begin();
+    while (itm != record->lineItems().end()){
+        int lr = listItems.rows(); //get last row
+        listItems.set_rows(lr+1); //add extra space
+        listItems.data(lr,0,itm->item().c_str());
+        listItems.data(lr,1,itm->qty());
+        listItems.data(lr,2,itm->rate());
+        listItems.data(lr,3,itm->amount());
+        amt+=itm->amount();
+    }
+    transactionAmount->value(Convert::doubleToCstr(record->value()));
+    //amountPaid->value(record->value());
+    
 };
 
 void FlStockTransactionDisplay::handleUiLib(Fl_Widget* w){
@@ -184,9 +222,11 @@ void FlStockTransactionDisplay::handleUiLib(Fl_Widget* w){
    
    if (w==client){
        //w->deactivate();//workaround a bug where sometimes dialog events are sent back here
+       //fl_alert(fl_eventnames[Fl::event()]);
        PromptUser::getClientId(&s);
        if (s.type()==data_kind::CSTRING){
             client->value(s.cstring());
+
             record->clientId(s.cstring());
        }
       // w->activate();
@@ -199,22 +239,45 @@ void FlStockTransactionDisplay::handleUiLib(Fl_Widget* w){
         if (s.type()==data_kind::CSTRING){
             record->clientId(s.cstring());
             productName->value(s.cstring());
-            itemQty->value("0");
+            //itemQty->value("0");
+            itemQty->take_focus();
             btnAdd->activate();
        }
      //  w->activate();
    }
 
    if(w==btnAdd){
-       if(productName->value()){
-            int lastrow = listItems.rows();
-            listItems.set_rows(lastrow +1);
+       //Add Item  to the list
+       if(std::strlen( productName->value())){
+            int lastrow = listItems.rows(); //get current row count 
+            listItems.set_rows(lastrow +1); //increment it
            //fl_alert("btnAdd called");
-            listItems.data(lastrow,0,productName->value());
+            listItems.data(lastrow,0,productName->value()); //copy from input to form
             listItems.data(lastrow,1,itemQty->value());
-            //add it to record
-            //....
+            listItems.data(lastrow,2,itemRate->value());
+            //----etc
+
+            //clear form
+            productName->value("");//
+            itemQty->value("");
+            itemRate->value("");
+            itemQty->value("");
+
+            btnClearAll->activate();
+            btnclear->activate();
+            btnEdit->activate();
+
+            //if(btnClearAll->active_r())fl_alert("fuck");
+
        }
-      
    }
+
+    if ( w==btnClearAll){
+        listItems.set_rows(0);
+
+        btnclear->deactivate();
+        btnClearAll->deactivate();
+        btnEdit->deactivate();
+    }
+
 }

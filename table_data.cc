@@ -47,7 +47,7 @@ variable::variable(const variable& v){
     }
 
     if(v.type()==OBJECT){
-        _object = _object; //shallow copy. 
+        _object = v._object; //shallow copy. 
         _type = OBJECT;
         _style = v._style;
     }
@@ -92,7 +92,8 @@ variable::variable(Object* v){
 
 //destructor. free memory
 variable::~variable(){
-    if (_type==CSTRING && _cstring) delete[] _cstring;
+    if (_type==CSTRING) {delete[] _cstring;
+    _cstring=nullptr;}
 }
 
 // returns string previosly stored with cstring()
@@ -108,7 +109,7 @@ char* variable::cstring(){
 
 //sets string type. not copies and keeps own copy
 void variable::cstring(const char* c){
-    if(_cstring)delete[]_cstring; //don't leak'
+    if(_type==CSTRING)delete[]_cstring; //don't leak'
 
     _cstring = new char[strlen(c)+1];
     strcpy(_cstring, c);

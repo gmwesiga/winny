@@ -2,9 +2,14 @@
 #include "winny_theme.h"
 #include <FL/fl_ask.H>
 #include <iostream>
+//for formating numbers to string
+#include <sstream>
+//for formating numbers with commas (set_locale)
+#include <locale>
+
 using std::cout;
 using std::endl;
-char* num2string(double num);
+char* num2string(wnumber num);
 
 dataset_view::dataset_view(int x, int y, int w, int h, const char* L)
 :Fl_Table::Fl_Table(x,y,w,h,L), data_(nullptr)
@@ -17,16 +22,18 @@ dataset_view::dataset_view(int x, int y, int w, int h, const char* L)
   backcolor             = WINDOW_COLOR();
   border_color          = DOMWGT_COLOR();      
   Fl_Align alignment    = FL_ALIGN_LEFT;
-  set_winny_button_theme(vscrollbar);
-  set_winny_button_theme(hscrollbar);
-  vscrollbar->slider(WINNY_THICK_BORDERBOX);
-  vscrollbar->type(FL_VERT_NICE_SLIDER);
-  hscrollbar->slider(WINNY_THICK_BORDERBOX);
+  vscrollbar->color(WINNY_BACKGROUND_DOMCOLOR);
+  hscrollbar->color(WINNY_BACKGROUND_DOMCOLOR);
+  vscrollbar->slider(WINNY_THIN_BORDERFRAME);
+  hscrollbar->slider(WINNY_THIN_BORDERFRAME);
+  set_winny_scroll_theme(this->table);
   set_selection(0,0,0,0);
   end();
-  dsv_select_row =0;
+  doc_selected = dsv_select_row =0;
+  when(FL_WHEN_CHANGED);
 
   gridcolor = wcolor2flcolor(wcolor(0,0,94));
+
   //printf("dataset_view constructor done");
 }
 
@@ -44,10 +51,10 @@ void dataset_view::draw_cell(TableContext context, int R, int C, int X, int Y, i
   switch (context)
   {
 	case CONTEXT_CELL:
-	  if(R==dsv_select_row)
+	  if(R==select_row)
 	  {  backcolor    = SELECTION_BACKCOLOR();
 		 border_color = SELECTION_BORDERCOLOR();
-	  }else if(R==select_row)
+	  }else if(R==dsv_select_row)
 	  {  backcolor    = SELECTION_BACKCOLOR2();
 		 border_color = SELECTION_BORDERCOLOR();
 	  }else{
@@ -77,6 +84,7 @@ void dataset_view::draw_cell(TableContext context, int R, int C, int X, int Y, i
       border_color          = DOMWGT_COLOR(); 
       return;
   }
+
 };
 
 void dataset_view::draw_data(table_data& dt, int X, int Y, int W, int H)
@@ -85,13 +93,35 @@ void dataset_view::draw_data(table_data& dt, int X, int Y, int W, int H)
     fl_color(backcolor);                       
     fl_font(WINNY_NORMALFONT,WINNY_NORMALTEXT_FONTSIZE);         //prepare to draw text
     fl_push_clip(X,Y,W,H);
+    
+    //for temprory saving current alignment settings
+    int al; 
+
+    //for convertining td->number to str
+    std::stringstream ss;
+
     switch(dt.type()){
         case NUMBER:
+            //save current align settings 
+            al = alignment;
+
+            //align numbers to right side
+            alignment= FL_ALIGN_RIGHT;
+
+            //print debug info
            // fl_alert(num2string(dt.number()));
-           cout<<dt.number()<<" : ";
+           //cout<<dt.number()<<" : ";fuck
+           
+            //format number to string, (cast to long)
+
+            //draw it
+            ss << (long long)dt.number();
             fl_rectf(X,Y,W,H);
             fl_color(wcolor2flcolor(dt.style().forecolor));                       //text color is black
-            fl_draw( num2string(dt.number()), X+10, Y,W-20, H, alignment);//-10 creates a small margin on the left -20 on the right
+            fl_draw(ss.str().c_str(), X+10, Y,W-20, H, alignment);//-10 creates a small margin on the left -20 on the right
+           
+            //reset alignment
+            alignment = al;
             break;
         case CSTRING:
             fl_rectf(X,Y,W,H);
@@ -194,93 +224,25 @@ void dataset_view::dataview_cb(dataset* d, void* v){
 
 
 int dataset_view::handle(int e){
-//handles events from os 
-     TableContext cxt;
-      int ret =    Fl_Table::handle(e);
-      ResizeFlag   rf ;
-      int          R,C;
-      int          previous_srow; 
-      switch(e)
-		{
-		  case FL_MOVE:
-			cxt = cursor2rowcol(R,C,rf);
-            if(cxt!=CONTEXT_CELL)return ret; 
+    int psr = select_row>=0?select_row:0;//previous selected row
+    int ret = Fl_Table::handle(e);
+     if (e == FL_MOVE 
+        || (e== FL_KEYDOWN && Fl::event_key()== FL_Down)
+        || (e== FL_KEYDOWN && Fl::event_key()== FL_Up)){
+         int ctx, R,C; ResizeFlag rf;
+			ctx = cursor2rowcol(R,C,rf);
+            if(ctx!=CONTEXT_CELL)return ret; 
 			if(R==select_row ||R==current_row) {return 1;}
 			
-            select_row = R;
-            set_selection(R,0,R,rightcol);//select this row
-            redraw_range(toprow,botrow,0,rightcol);
-            
-            return 1; 
-		   
-		   case FL_LEAVE: 
-            select_row=-1; //hide   
-            break;
-		   
-           case FL_PUSH: 
-            cxt = cursor2rowcol(R,C,rf);
-            if (!rows() ||cxt!=CONTEXT_CELL){
-                //need to call redraw, if not, some cases,
-                //portions of view get invalidated
-                //redraw_range(toprow,botrow,0,rightcol);
-                redraw();
-                return ret;
-            }
-            dsv_select_row = R;
+            dsv_select_row= R;
+           // take_focus();//keep focus
+        //redraw();
+     }
+        set_selection(select_row,0,select_row,rightcol);//select this row
+        redraw_range(toprow,botrow,0,rightcol);
+    if (e==FL_PUSH) take_focus();//krudge. 
+    return ret;
 
-            set_selection(R,0,R,rightcol);//select this row
-            redraw_range(toprow,botrow,0,rightcol);
-            //redraw();
-
-            take_focus();//prepare to use keyboard nav
-            set_changed();
-            if(when()&FL_WHEN_CHANGED ||when()&FL_WHEN_RELEASE ||when()&FL_WHEN_ENTER_KEY)
-                do_callback(cxt,R,C);
-            return 1;//don't send '
-		   
-           case FL_KEYDOWN:
-            switch(Fl::event_key()){
-                case FL_Down:
-                case FL_Up:
-                case FL_Page_Up:
-                case FL_Page_Down:
-                case FL_Home:
-                case FL_End:
-                    //fl::table throws focus on Fl_Up when select_row ==0
-                    //so, we want to keep it
-                    if(!ret)return 1;
-                    
-                   set_selection(select_row,0,select_row,rightcol);//select this row 
-                   redraw_range(toprow,botrow,0,rightcol);
-                   //redraw();
-                   // printf("current_row(%d)\n",current_row);
-                
-                break;
-
-                case FL_Enter:
-                case FL_KP_Enter:
-
-                // not using cursor so no need to test for this                
-                    //cxt = cursor2rowcol(R,C,rf); 
-                    //if (cxt!=CONTEXT_CELL)return ret;  
-                
-                dsv_select_row = select_row; 
-               
-                set_selection(select_row,0,select_row,rightcol);//select this row
-                redraw_range(toprow,botrow,0,rightcol);
-                //redraw();
-               
-                take_focus();
-                set_changed();
-                if(when()&FL_WHEN_CHANGED ||when()&FL_WHEN_RELEASE ||when()&FL_WHEN_ENTER_KEY)
-                    do_callback(cxt,R,C);
-                return 1;//don't send '   
-             }
-			  //redraw(); 
-		  default: 
-			return ret;
-		}
-        return ret; 
 };
 
 //converts from api to implementation defined color
@@ -289,14 +251,17 @@ Fl_Color dataset_view::wcolor2flcolor(const wcolor& w)const{
 };
 
 
-static char* _cstring_ =0;
+//static char* _cstring_ =0;
 //converts number to int and stores it in cstring
-char* num2string(double num){
-    if(_cstring_)delete[]_cstring_; //not optimum 
-    char* _cstring_ = new char[20];
-    sprintf(_cstring_,"%15.f",num);
-    return _cstring_;
-}
+
+char* num2string(wnumber num){
+    
+    std::stringstream ss;
+    ss<<num;
+    //cout <<(char*)(ss.str().c_str());
+    return (char*)(ss.str().c_str());
+};
+
 
 void dataset_view::col_auto_resize(int val){
     col_auto_resize_ = val;
@@ -336,7 +301,7 @@ int dataset_view::col_auto_width(int col){
 void dataset_view::resize(int X, int y, int W, int h){
 
     if(!col_auto_resize_){
-        int W2 = W-vscrollbar->w();//new width
+        int W2 = W-(vscrollbar->w()+2);//new width takes into account width of vscroll
          for(int i=0; i<cols(); i++){
             col_width(i, (double)1/cols() *W2);//auto resize to new width
         }
@@ -352,5 +317,6 @@ void dataset_view::resize(int X, int y, int W, int h){
     }
 
         Fl_Table::resize(X,y,W,h);
+        //redraw();
 
 }
