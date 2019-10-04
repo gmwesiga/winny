@@ -131,6 +131,8 @@ void set_winny_scroll_theme (Fl_Scroll *w){
   w->scrollbar.slider(WINNY_THIN_BORDERFRAME);
   w->scrollbar.color(/*"fl_rgb_color(213,213,213)"*/WINNY_BACKGROUND_DOMCOLOR);
   //w->scrollbar.type(FL_VERT_NICE_SLIDER);
-  w->hscrollbar.slider(WINNY_THINDOWN_BORDERBOX);
-  //w->scrollbar.slider.color(fl_rgb_color(241,241,249));
+  w->hscrollbar.slider(WINNY_THINDOWN_BORDERFRAME);
+  w->hscrollbar.color(WINNY_BACKGROUND_DOMCOLOR);
+  w->color(fl_rgb_color(251, 251, 251));
+ // w->box(WINN)
 };

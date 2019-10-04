@@ -29,15 +29,15 @@ listItems(0,4),record(nullptr)
     thePage = new Fl_Scroll(DCX(0),DCY(0),CONTENT_AREA.W,CONTENT_AREA2.H);
     set_winny_scroll_theme(thePage);
     thePage->begin();
-    thePage->box(WINNY_NO_BORDERBOX);
-    thePage->color(WINDOW_COLOR());
+    thePage->box(WINNY_BOTTOM_BORDERBOX);
+    //thePage->color(WINDOW_COLOR());
     int comMenuY,comMenuWa, comMenuWb,comMenuH;
     comMenuY = 32;
     comMenuWa = 88;
     comMenuWb = 56;
     comMenuH = SLWH;
 
-    bgbox = new Fl_Box(DCX(5),DCY(0),467,572);
+    bgbox = new Fl_Box(DCX(1),DCY(0),471,572);
     bgbox->box(WINNY_THIN_BORDERBOX);
     bgbox->color(fl_rgb_color(240,240,240));
 
@@ -128,7 +128,7 @@ listItems(0,4),record(nullptr)
     thePage->end();
     
     begin();
-    holrule1 = new Fl_Box(DCX(1),DCY(0),CONTENT_AREA2.W, 1);
+    holrule1 = new Fl_Box(DCX(-2),DCY(0),CONTENT_AREA2.W+4, 1);
     holrule1->box(WINNY_TOP_BORDERBOX);
 
     btnSave = new Fl_Button(DMX(5),DMY(MBH),48,20,"save");
@@ -144,8 +144,8 @@ listItems(0,4),record(nullptr)
 
    // spacer = new Fl_Box(DCX(1),DCY(1),1,1);
 
-    resizer = new Fl_Box(CONTENT_AREA2.W - 10,319,1,1);
-    resizable(resizer);
+    //resizer = new Fl_Box(CONTENT_AREA2.W - 10,319,1,1);
+    //resizable(resizer);
     
     set_winny_window_theme(this);
 
