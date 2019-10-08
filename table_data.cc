@@ -8,7 +8,7 @@ using std::strcpy;
 static styling defaultStyle = {
 
     wcolor(0, 0, 0),
-    wcolor(249, 249, 249),
+    wcolor(251, 251, 251),
     wcolor(243, 243, 243),
     0
 };

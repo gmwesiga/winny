@@ -32,6 +32,7 @@ class FlStockTransactionDisplay : public Fl_Group, public IUserInterface{
     private:
 
     Winny::load_list* record;
+    void redrawData(); // draw record or redraw it. utility function that draws record into fl widgets
 
     Fl_Input_ *client, 
              *transactionId, 

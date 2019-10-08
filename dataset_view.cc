@@ -89,8 +89,10 @@ void dataset_view::draw_cell(TableContext context, int R, int C, int X, int Y, i
 
 void dataset_view::draw_data(table_data& dt, int X, int Y, int W, int H)
 {
-    //dt = const_cast<table_data>(dt); 
-    fl_color(backcolor);                       
+    //set the backcolor using backcolor of data itself, that way different cells can be given different colors
+    fl_color(wcolor2flcolor(dt.style().backcolor));
+
+    //set the font to use and its size
     fl_font(WINNY_NORMALFONT,WINNY_NORMALTEXT_FONTSIZE);         //prepare to draw text
     fl_push_clip(X,Y,W,H);
     

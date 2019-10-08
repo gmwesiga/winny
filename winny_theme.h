@@ -19,6 +19,7 @@ inline Fl_Color ACCWGT_COLOR(){return fl_rgb_color(110,153,255);};//grey blue
 #define WINNY_BACKGROUND_DOMCOLOR DOMWGT_COLOR()
 #define WINNY_BACKGROUND_ACCCOLOR ACCWGT_COLOR()
 #define WINNY_BUTTON_COLOR fl_rgb_color(233,233,233)
+#define WINNY_BACKGROUND_ACCCOLOR2 fl_rgb_color(251, 251, 251) //offwhite...
 
 //font themes;
 //inline Fl_Color FONT_COLOR_DOM() { return fl_rgb_color(102,102,102);} //dark gray

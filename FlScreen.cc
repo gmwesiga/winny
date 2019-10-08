@@ -19,7 +19,7 @@ static IScreen* SCREEN = nullptr;
 /*constructor initialises base implementation fl_window with design
  *specification height and width*/
 FlScreen::FlScreen(): Fl_Double_Window(SCRN_WIDTH,SCRN_HEIGHT)
-,current(nullptr),listTransactionDisplayInstance(nullptr){
+,current(nullptr),listTransactionDisplayInstance(nullptr), msgs(nullptr){
     SCREEN = this;
     init_ui();
     begin();
@@ -90,13 +90,14 @@ FlScreen::FlScreen(): Fl_Double_Window(SCRN_WIDTH,SCRN_HEIGHT)
 
     scrnResizer = new Fl_Box(798,520,44,1);
     resizable((Fl_Widget*)scrnResizer);
-    
-    msgs = new FlNotificationDisplay();
+    //msgs = new FlNotificationDisplay();
     
     color(WINDOW_COLOR());
     set_winny_window_theme(this);//do this before creating invisible resize box
 
     end();
+
+
     //fl_alert("we are here");
 };
 

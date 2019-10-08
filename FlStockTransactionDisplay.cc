@@ -8,6 +8,7 @@
 #include <FL/fl_ask.H>
 #include <FL/names.h>
 #include <convert.h>
+#include <sstream> //for converting strings to ints
 
 using utils::Time;
 
@@ -37,7 +38,7 @@ listItems(0,4),record(nullptr)
     comMenuWb = 56;
     comMenuH = SLWH;
 
-    bgbox = new Fl_Box(DCX(1),DCY(0),471,572);
+    bgbox = new Fl_Box(DCX(1),DCY(0),471,552);
     bgbox->box(WINNY_THIN_BORDERBOX);
     bgbox->color(fl_rgb_color(240,240,240));
 
@@ -81,8 +82,8 @@ listItems(0,4),record(nullptr)
     itemQty = new Fl_Int_Input(DCX(155),DCY(215),40,SLWH,"Qty");
     set_winny_input_theme(itemQty);
 
-    itemRate = new Fl_Input(DCX(198),DCY(215),78,SLWH,"Rate");
-    itemRate->deactivate();
+    itemRate = new Fl_Int_Input(DCX(198),DCY(215),78,SLWH,"Rate");
+    //itemRate->deactivate();
     set_winny_input_theme(itemRate);
 
     itemValue = new Fl_Input(DCX(281),DCY(215),109,SLWH,"Amount");
@@ -94,24 +95,24 @@ listItems(0,4),record(nullptr)
     btnAdd->deactivate();
     btnAdd->callback(fltkCallback, this);
 
-    btnEdit = new Fl_Button(DCX(27),DCY(259),45,16,"Edit");
+    btnEdit = new Fl_Button(DCX(27),DCY(470),45,16,"Edit");
     set_winny_button_theme(btnEdit);
     btnEdit->callback(fltkCallback, this);
     btnEdit->deactivate();
 
-    btnclear = new Fl_Button(DCX(71),DCY(259),45,16,"Clear");
+    btnclear = new Fl_Button(DCX(71),DCY(470),45,16,"Clear");
     set_winny_button_theme(btnclear);
     btnclear->callback(fltkCallback, this);
     btnclear->deactivate();
 
-    btnClearAll = new Fl_Button(DCX(116),DCY(259),56,16,"Clear All");
+    btnClearAll = new Fl_Button(DCX(116),DCY(470),56,16,"Clear All");
     set_winny_button_theme(btnClearAll);
     btnClearAll->callback(fltkCallback, this);
     btnClearAll->when(FL_WHEN_RELEASE_ALWAYS);
     btnClearAll->deactivate();
     btnClearAll->shortcut(FL_ALT+'d');
 
-    items = new dataset_view(DCX(26),DCY(280),420,210);
+    items = new dataset_view(DCX(26),DCY(259),420,210);
     items->box(WINNY_TOP_BORDERFRAME);
     //items->table_box(WINNY_TOP_BORDERBOX);
     items->col_auto_resize();
@@ -187,6 +188,15 @@ void FlStockTransactionDisplay::writeBuff(MemAddress buff){
     if(record) delete record;
     record = (Winny::load_list*)buff;
 
+    redrawData();
+
+    //amountPaid->value(record->value());
+    
+};
+
+
+
+void FlStockTransactionDisplay::redrawData(){
     transactionDate->value(record->transactionDate().sdate().c_str()); //copy date
     doctype =record->docType(); //copy doctype
     FlStockTransactionDisplay::id(doctype);
@@ -195,6 +205,7 @@ void FlStockTransactionDisplay::writeBuff(MemAddress buff){
     transactionId->value(Convert::doubleToCstr(record->number())); //copy id
     IScreen::screen()->log("doctype is ..."+ doctype);
 
+    listItems.set_rows(0);//clear and start afresh
     double amt=0.0;
     auto itm = record->lineItems().begin();
     while (itm != record->lineItems().end()){
@@ -205,14 +216,14 @@ void FlStockTransactionDisplay::writeBuff(MemAddress buff){
         listItems.data(lr,2,itm->rate());
         listItems.data(lr,3,itm->amount());
         amt+=itm->amount();
+        itm++;
     }
     transactionAmount->value(Convert::doubleToCstr(record->value()));
-    //amountPaid->value(record->value());
-    
-};
+}
 
 void FlStockTransactionDisplay::handleUiLib(Fl_Widget* w){
-    variable s;
+    variable s; 
+    std::stringstream ss; //for conversions
     if (w==transactionDate){
         utils::Time t;
         PromptUser::getDate(&t);
@@ -226,11 +237,9 @@ void FlStockTransactionDisplay::handleUiLib(Fl_Widget* w){
        PromptUser::getClientId(&s);
        if (s.type()==data_kind::CSTRING){
             client->value(s.cstring());
-
             record->clientId(s.cstring());
        }
-      // w->activate();
-       return;
+      
    }
 
    if (w==productName){
@@ -243,19 +252,46 @@ void FlStockTransactionDisplay::handleUiLib(Fl_Widget* w){
             itemQty->take_focus();
             btnAdd->activate();
        }
-     //  w->activate();
+    //update rate
+      int rt = rand()*1000; //generate random rate using rand
+      ss.str("");//convert it into a string using string stream
+      ss<<rt;
+      string srate;
+      ss>>srate;
+      itemRate->value(srate.c_str());
+       return;
    }
 
    if(w==btnAdd){
        //Add Item  to the list
        if(std::strlen( productName->value())){
-            int lastrow = listItems.rows(); //get current row count 
-            listItems.set_rows(lastrow +1); //increment it
-           //fl_alert("btnAdd called");
-            listItems.data(lastrow,0,productName->value()); //copy from input to form
-            listItems.data(lastrow,1,itemQty->value());
-            listItems.data(lastrow,2,itemRate->value());
-            //----etc
+           
+           //allocate temp space for new load item
+           load_item itm;
+
+           //set item name with product name selected by user
+            itm.item(productName->value());
+           
+            //convert char* input for qty and rate  to numeric required by loadlist.
+            int qty(0); int rate(0);
+            ss.clear();//reset
+            ss.seekg(0); //rewind cursor
+            ss.str(itemQty->value());
+            ss>>qty;
+
+            ss.clear();//reset 
+            ss.seekg(0); //rewind cursor
+            ss.str(itemRate->value());
+            ss>>rate; //use qty(which is int) to first read it as int
+            
+            //set qty and rate for load item
+            itm.qty(qty);
+            itm.rate((double)rate);
+
+            //insert it into loadlist
+            record->insertLineItem(itm);
+            //update display
+            redrawData();
 
             //clear form
             productName->value("");//
@@ -273,7 +309,8 @@ void FlStockTransactionDisplay::handleUiLib(Fl_Widget* w){
    }
 
     if ( w==btnClearAll){
-        listItems.set_rows(0);
+        record->lineItems().clear();
+        redrawData();
 
         btnclear->deactivate();
         btnClearAll->deactivate();

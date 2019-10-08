@@ -73,7 +73,8 @@ class FlScreen : public IScreen, public Fl_Double_Window{
     Fl_Button* logOutBtn;
     Fl_Box* shopNameLbl;
     Fl_PNG_Image* _menuicon_;
-    Fl_Menu_Button* menuicon;
+    Fl_Menu_Button* menuicon;//the hidden menu button that actually has the menue
+    Fl_Button* fakemenu; //the visible menueicon button
 
     FlNotificationDisplay *msgs;
 

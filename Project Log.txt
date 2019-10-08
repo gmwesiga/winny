@@ -4,6 +4,12 @@
 
 
 To do:
+        FlStockTransactionDisplay
+         -- move button group for particulars to top left corner of add box. to archive remove current
+            structurally confusion of current arrangment.
+         -- reimplement add handler logic as follows: factor out loaditem draw code in writebuff into own method,
+         -- and have writebuff copy the data into internal storage and call the method instead; rearrange add 
+            handler to also call the draw routine.
         
 
 Notes:

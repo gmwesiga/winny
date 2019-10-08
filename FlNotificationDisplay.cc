@@ -62,20 +62,23 @@ void FlNotificationDisplay::add(std::string message){
     view->add(message.c_str());
     view->topline(view->size());
     //view->select(view->size());
+    restore();
     
 };
 
 
 void FlNotificationDisplay::restore(){
     if(!CLOSED)return;
-    Fl::remove_timeout(showSelf); //we are resetting
-    Fl::repeat_timeout(0.005,showSelf,(void*)this); //emmediately restore
+   // Fl::remove_timeout(showSelf); //we are resetting
+   // Fl::repeat_timeout(0.005,showSelf,(void*)this); //emmediately restore
+   showSelf(this);
 }
 
 void FlNotificationDisplay::minimise(){
     if(CLOSED)return;
-    Fl::remove_timeout(closeSelf);//we are resetting
-    Fl::repeat_timeout(2.0,closeSelf, (void*)this);
+    closeSelf(this);
+   // Fl::remove_timeout(closeSelf);//we are resetting
+   // Fl::repeat_timeout(2.0,closeSelf, (void*)this);
 }
 
 //progressively hide
@@ -83,16 +86,19 @@ static void closeSelf(void* data){
     Fl_Group* vw = (Fl_Group*)data;
     if(vw->h()<=MINHGHT){
         CLOSED = 1;
-        Fl::remove_timeout(closeSelf);
+       // Fl::remove_timeout(closeSelf);
          return;
     };
-    vw->resize(
+   /* vw->resize(
         vw->x(),vw->y()+1,
         vw->w(),vw->h()-1);
     vw->parent()->damage(FL_DAMAGE_CHILD);
-    //vw->damage(FL_DAMAGE_ALL,NOTFCN_AREA.X,NOTFCN_AREA.Y, NOTFCN_AREA.W,NOTFCN_AREA.H);
     vw->parent()->redraw();
-    Fl::repeat_timeout(0.005,closeSelf,(void*)vw);
+    Fl::repeat_timeout(0.005,closeSelf,(void*)vw);*/
+    vw->resize(vw->x(),vw->y()+NOTFCN_AREA.H,
+        vw->w(),MINHGHT);
+    CLOSED = 1;
+    vw->redraw();
 };
 
 //progressively show
@@ -100,18 +106,24 @@ static void showSelf(void* data){
     Fl_Group* vw = (Fl_Group*)data;
     if(vw->h()>=NOTFCN_AREA.H){
         CLOSED=0;
-        Fl::remove_timeout(showSelf);
-        Fl::repeat_timeout(10,closeSelf,data);
+       // Fl::remove_timeout(showSelf);
+       // Fl::repeat_timeout(10,closeSelf,data);
         return;
     };
-    vw->resize(
+   /* vw->resize(
         vw->x(),vw->y()-1,
         vw->w(),
         vw->h()+1);
     vw->parent()->damage(FL_DAMAGE_CHILD);
     //vw->damage(FL_DAMAGE_ALL,NOTFCN_AREA.X,NOTFCN_AREA.Y, NOTFCN_AREA.W,NOTFCN_AREA.H);
     vw->parent()->redraw();
-    Fl::repeat_timeout(0.005,showSelf,(void*)vw);
+    Fl::repeat_timeout(0.005,showSelf,(void*)vw);*/
+        vw->resize(
+        vw->x(),vw->y()-NOTFCN_AREA.H,
+        vw->w(),
+        vw->h()+NOTFCN_AREA.H);
+    CLOSED = 1;
+    vw->redraw();
 };
 
 

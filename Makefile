@@ -7,8 +7,8 @@ objects = winny.o FlScreen.o IExtEventSource.o \
 			w_transaction.o
 commonUIHeaders = FWidgetSizes.H winny_theme.h WinnyUserPrompts.H
 
-#FLDLIBS = -mwindows -lfltk_images -lfltk_png -lfltk_z -lfltk -lole32 -luuid -lcomctl32
-FLDLIBS = -lfltk_images -lfltk_png -lfltk_z -lfltk -lpthread -ldl -lm -lX11
+FLDLIBS = -mwindows -lfltk_images -lfltk_png -lfltk_z -lfltk -lole32 -luuid -lcomctl32
+#FLDLIBS = -lfltk_images -lfltk_png -lfltk_z -lfltk -lpthread -ldl -lm -lX11
 
 FLDFLAGS = -L/usr/local/lib
 FLCXXFLAGS = -g -I. -I/usr/local/include -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE \
