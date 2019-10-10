@@ -167,7 +167,8 @@ void FlStockTransactionDisplay::show(){
 }
 
 void FlStockTransactionDisplay::update(){
-    return;
+    redrawData();
+    redraw();
 }
 
 
@@ -219,6 +220,9 @@ void FlStockTransactionDisplay::redrawData(){
         itm++;
     }
     transactionAmount->value(Convert::doubleToCstr(record->value()));
+    if(status()==IUserInterface::BUSY){
+        this->deactivate();
+    }
 }
 
 void FlStockTransactionDisplay::handleUiLib(Fl_Widget* w){
@@ -317,4 +321,8 @@ void FlStockTransactionDisplay::handleUiLib(Fl_Widget* w){
         btnEdit->deactivate();
     }
 
+    if (w==btnSave){
+        raiseEvent(CmdEditProductDetails);//set status to busy too
+        update();
+    }
 }

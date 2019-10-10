@@ -18,7 +18,7 @@
 class FlStockTransactionDisplay : public Fl_Group, public IUserInterface{
     public:
 
-    FlStockTransactionDisplay();//pass window;
+    FlStockTransactionDisplay();
     void show();
     void hide();
     void update();   
