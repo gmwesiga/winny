@@ -2,6 +2,8 @@
 #ifndef WDS_DATASERVER_LINK_H
 #define WDS_DATASERVER_LINK_H
 
+#include <IApplication.h> //for *IApplication
+
 namespace StdSystem {
 
     typedef void* Address;
@@ -9,7 +11,7 @@ namespace StdSystem {
     class IDatabaseService{
         
         public:
-        enum Requests{
+        enum Request{
             CONNECT,
             CLOSE,
             NEW_PRODT,
@@ -25,9 +27,14 @@ namespace StdSystem {
             GETL_PRODTS
         };
 
+        struct RequestInfo {
+            Request request; //the requested operation
+            IApplication* client; //address of client app where to send response
+            Address data; //address to additional data required to perform operation. 
+        };
 
         /*Perform the requested request */
-        virtual int process( IDatabaseService::Requests rqst, StdSystem::Address rqstData = 0 )=0;
+        virtual int process( RequestInfo rqst)=0;
     };
 
 
