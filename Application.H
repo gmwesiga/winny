@@ -39,7 +39,7 @@ class Application : public StdSystem::IApplication {
 class IDatabaseIOService {
     public:
     void process();
-};
+};   
 //To Do
 //remember to generalise uiScreen arguments to Interface equivalents to remove
 //dependency on flImplementation
