@@ -5,17 +5,12 @@
 #include <IUserInterface.h>
 #include <FlScreen.h> //testing only to be replaced with Iscreen instead. break dependency
 #include <IApplicationTypes.H>
+#include <map>
+#include <IDatabaseServer.h>
+
+using std::map;
 
 using namespace StdSystem;
-
-class IDataBaseIOService;
-/*IDatabaseService defines an interface required by Application to service
- *(handle) requests that need retrieval of data. Application requires this 
- *IDtabaseService to have a process that takes a request command token and
- *optionally a argument list.
- *Application also requires that process() returns imediately and performs
- *long work in the background upon completion of which, it calls application's
- *handle and passes the results.*/
 
 
 class Application : public StdSystem::IApplication {
@@ -28,18 +23,20 @@ class Application : public StdSystem::IApplication {
 
     private:
     void navigate (Winny::UserIODevName* n);
-    Winny::AppInfo curStatus;//what state application is in..initially Closed.
+    
+    //what state application is in..initially Closed.
+    Winny::AppInfo curStatus;
 
+    /*Reference to Screen*/
     FlScreen* userIO;
-    IDataBaseIOService *databaseIOServer;
-
+    
+    /*Reference to the databaseService*/
+    StdSystem::IDatabaseService *databaseIOServer;
+    
+    /*Track Request clients and match them to responses to clients*/
+    map<RequestId,IUserInterface*> requestToClient;
 };
-
-
-class IDatabaseIOService {
-    public:
-    void process();
-};   
+ 
 //To Do
 //remember to generalise uiScreen arguments to Interface equivalents to remove
 //dependency on flImplementation

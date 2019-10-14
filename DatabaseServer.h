@@ -5,6 +5,7 @@
 #include <stack>//for implementing the stack
 #include <mutex> //for locking
 #include <condition_variable> //for locking
+#include <thread> //a local thread
 
 
 using StdSystem::IDatabaseService;
@@ -27,16 +28,27 @@ class DatabaseServer : public IDatabaseService{
       queue until its empty then it sleeps until process awakes it   
       */
     public:
+
+    /*Construct and start thread*/
+    DatabaseServer();
+
+
     int process(RequestInfo rqst);
 
     private:
     /*list of Pending requests*/
     static std::stack <RequestInfo> RequestQueue;
+
+    /*server() waits on this*/
     static std::condition_variable notEmpty;
+
+    /*synchronise process() and server() access to RequestQueue*/
     static std::mutex queueLock;
 
+    /*allocates thread object to contain server thread*/
+    std::thread svr;
 
-    /**/
+    /*the actual server doing the work*/
     static void server(); 
 };
 
