@@ -139,7 +139,20 @@ class dataset {
     void pause_events();
     void resume_events();
     int is_publishing_events();
-   // dataset& operator=(const dataset& other);
+
+    
+    void copyfrom(const dataset& other){
+    //copies data from other dataset but not listerners
+    //not assign it's listerns.
+        r = other.r;
+        c = other.c;
+        _data = other._data;
+        _rheaders = other._rheaders;
+        _cheaders = other._cheaders;
+        sty = other.sty;
+        mydef = other.mydef;
+        call_listeners();
+    };
 
     private:
     int r, c, publishing;

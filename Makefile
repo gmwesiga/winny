@@ -4,7 +4,7 @@ objects = winny.o FlScreen.o IExtEventSource.o \
 			dataset.o dataset_view.o table_data.o color.o FlCreateContactDisplay.o \
 			Application.o FlNotificationDisplay.o FlOffPremiseSaleUserIO.o \
 			FlCashFlowDisplay.o WinnyUserPrompts.o time.o FlStockTransactionDisplay.o \
-			w_transaction.o
+			w_transaction.o DatabaseServer.o Globals_DatabaseServer.o
 commonUIHeaders = FWidgetSizes.H winny_theme.h WinnyUserPrompts.H
 
 #FLDLIBS = -mwindows -lfltk_images -lfltk_png -lfltk_z -lfltk -lole32 -luuid -lcomctl32
@@ -39,6 +39,8 @@ FlOffPremiseSaleUserIO.o: FlOffPremiseSaleUserIO.H $(commonUIHeaders)
 FlCashFlowDisplay.o: FlCashFlowDisplay.H $(commonUIHeaders)
 FlStockTransactionDisplay.o: FlStockTransactionDisplay.H $(commonUIHeaders)
 w_transaction.o: transaction.H
+DatabaseServer.o : DatabaseServer.h
+Globals_DatabaseServer.o :IDatabaseServer.h
 
 dataset.o      : gmdataset.h
 dataset_view.o : dataset_view.h

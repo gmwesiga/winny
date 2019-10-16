@@ -25,7 +25,7 @@ static void winProc ( Fl_Widget* w, void* o);
 
 FlListDisplay::FlListDisplay()
     :Fl_Group(CONTENT_AREA.X,CONTENT_AREA.Y,CONTENT_AREA.W,CONTENT_AREA.H)
-    ,output(nullptr), cb(nullptr)
+    ,output(0,0), cb(nullptr)
     {
         int MBY = MBH;
         int mbh = 20;
@@ -69,7 +69,7 @@ FlListDisplay::FlListDisplay()
         searchToken->when(FL_WHEN_CHANGED);
         searchToken->align(FL_ALIGN_INSIDE);
 
-        menuBarResizer = new Fl_Box(DMX(388),DMY(MBY+5),10,0);
+        menuBarResizer = new Fl_Box(DMX(388),DMY(MBY+mbh+1),10,0);
         menuBarResizer->box(WINNY_NO_BORDERBOX);
         menuBar->resizable(menuBarResizer);
 
@@ -82,6 +82,7 @@ FlListDisplay::FlListDisplay()
         //itemsList->box(WINNY_TOP_BORDERBOX);
         itemsList->row_header(1);
         itemsList->col_auto_resize(1);
+        itemsList->attach_dataset(&output);
         resizable((Fl_Widget*)itemsList);
         end();
 
@@ -101,7 +102,7 @@ FlListDisplay::FlListDisplay()
     };
 
     void FlListDisplay::update(){
-        if(!cb)return;
+        //if(!cb)return;
         //cb(this,(int)Query::REFRESH);
         Fl_Group::redraw();
     }
@@ -113,33 +114,20 @@ void FlListDisplay::writeBuff(MemAddress buff){
     //assumes buff is MemAddress of a struct Query
     //when it returns, it has copied the output member of 
     //the struct into the display, application can free resources
+    
+    //printf("In writeBuff\n");
+    //assume buff is a pointer to a useroutputarg
+    Winny::UserOutputArg* bf = (Winny::UserOutputArg*)buff;
+    
+    if(bf->event == CmdUpdateProductsList){
+        //output args of CmdUpdateProductList is dataset
 
-    using Winny::Query;
-
-    //assume buff is a pointer to a query struct
-    Query* bf = (Query*)buff;
-
-    //allocate new dataset to copy into if not exist
-    if(output==nullptr)
-        output = new dataset(bf->outPut->rows(), bf->outPut->cols());
-    else{
-    //or just resize existing
-        output->set_rows(bf->outPut->rows());
-        output->set_cols(bf->outPut->cols());
+        dataset* results = (dataset*)bf->args;
+        output.copyfrom( *results); //wierd copy;
+        //printf("size of output.rows() is %d\n", results->rows());
+        update();
     }
 
-    //return if we run out of memory
-    if(!output)return;
-
-    //copy from buff into new dataset
-    for (int r = 0; r<output->rows(); r++){
-        for(int c=0; c<output->cols(); c++){
-            output->data(r,c,bf->outPut->data(r,c));
-        }
-    }
-
-    //attach and update display
-    itemsList->attach_dataset(output);
 
     //client is responsible to free buff;
 };
@@ -189,14 +177,26 @@ void productListCb(IUserInterface *o, int e){
     Winny::UserIODevName pname;
     switch(E){
         case FlListDisplay::Query::REFRESH:
-            o->raiseEvent(CmdUpdateProductsList,o);
+        {
+            Winny::UserInputArg args;
+            args.event = CmdUpdateProductsList;
+            args.interface = o;
+            args.args = nullptr;
+            o->raiseEvent(CmdUpdateProductsList,&args);
+        }
         break;
         case FlListDisplay::Query::CREATE:
             pname = Winny::UserIODevName::UIOQ_CREATE_PRODUCT;
             o->raiseEvent(CmdNavigateTo,&pname);
         break;
         case FlListDisplay::Query::SEARCH:
-            o->raiseEvent(CmdUpdateProductsList,o);
+        {
+            Winny::UserInputArg args;
+            args.event = CmdUpdateProductsList;
+            args.interface = o;
+            args.args = nullptr;
+            o->raiseEvent(CmdUpdateProductsList,&args);
+        }
         break;
     }
 };

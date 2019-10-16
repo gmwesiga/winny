@@ -2,12 +2,20 @@
 //#include <records_lib.h>
 #include<FL/fl_ask.H> //todo remove this after production
 #include<stdlib.h>
+#include<iostream>
+
 
 #define screen scrn
 
 //Constructor optionally sets reference to the UI to be
 //used for application data input and output
-Application::Application(FlScreen* sn):userIO(sn){
+Application::Application(FlScreen* sn,StdSystem::IDatabaseService* db)
+    :userIO(sn),
+    databaseIOServer(db),
+    bgworker(Application::processDBResponse)
+{
+    //remember to assign self to screen
+    if(sn) sn->Attach(this);
     return;
 };
 
@@ -15,6 +23,7 @@ Application::Application(FlScreen* sn):userIO(sn){
 //can be used to set it or update it to a new reference
 void Application::uiScreen(FlScreen* sn){
     userIO=sn;
+    sn->Attach(this);//Attach self to Screen;
 }; 
 
 //Handle is the heart of the application. normally on
@@ -31,7 +40,11 @@ void Application::uiScreen(FlScreen* sn){
 //whether the application implements or doesn't implement the action.
 
 int Application::handle(sEvent cmd,void *eData){
+    Winny::UserInputArg *arg;
+    IDatabaseService::Response *res;
+
     switch (cmd) {
+
         case SigUserIOready:
             curStatus.sessionInfo.currentOpgUnit.name = (char*)"Premium Distributors";//cast constness
             curStatus.sessionInfo.operatingUnits.push_back({(char*)"Global Distributors",(char*)"Gors"});
@@ -40,10 +53,25 @@ int Application::handle(sEvent cmd,void *eData){
             curStatus.sessionInfo.role.name = (char*)"Admin";
             userIO->writeBuff(&curStatus);
         break;
+
+
         case CmdsearchProduct:
-            userIO->log("CmdSearchProduct...Delivered");
-            productListUpdate(eData);
+        case CmdUpdateProductsList:
+        {
+            std::cout<<"preparing request \n";
+            arg = (Winny::UserInputArg*)eData;
+            IDatabaseService::RequestInfo rqst;
+            rqst.client = arg->interface;
+            rqst.args = arg->args;
+            rqst.request = IDatabaseService::Request::GETL_PRODTS;
+            rqst.triggerEvent = arg->event;
+            //std::cout<<"trigger Event sent is "<<rqst.client<<"\n";
+            rqst.responseBuffer = new IDatabaseService::Response();
+            //saveRequest(rqst);
+            databaseIOServer->process(rqst);
+        }
             break;
+
         case CmdEditProductDetails:
             userIO->log("CmdEditProductDetails...Delivered");
 
@@ -53,9 +81,9 @@ int Application::handle(sEvent cmd,void *eData){
             //userIO->log(string("navigating to ").append(data));
             navigate((Winny::UserIODevName*)eData);}
             break;
-        case CmdUpdateProductsList:
+/*         case CmdUpdateProductsList:
             userIO->log("***CmdUpdateProductsList...Delivered");
-            productListUpdate(eData);
+            productListUpdate(eData); */
         break;
         default:
             userIO->log("@@@@unkown Command ...Delivered");
@@ -68,48 +96,86 @@ void Application::navigate (Winny::UserIODevName* n){
 };
 
  int Application::productListUpdate(void* o){
-     //ideally we would do some  queries and return but for now
-
-     //o is address of a FListDisplay
-     IUserInterface* io = (IUserInterface*)o;
-     
-     //o->writebuff() expects a Query*
-     Winny::Query qry;
-
-
-     /* string*/double s(10);//*std::;
-     variable data;
-
-    //sizes of our dataset response //lets use response and request terms
-     int rc = 50; int cc = 10; 
-
-    //output shall hold our response
-    Winny::Dataset output(rc,cc);
-
-    //populate it with some garbage data for now
-     for (int r=0; r<rc; r++){
-         for (int c=0; c<cc; c++){
-            data.number((r)*rand());
-            output.data(r,c,data);
-            if(output.data(r,c).number()>300000){
-                output.data(r,c).style().forecolor = wcolor(0,125,12);
-                
-            }
-            output.data(r,c).style().borders = Borders::LEFT_RIGHT_BORDER;
-            
-         }
-        // output.data(r,0).cstring("some very long long long stupid text");
-     }
-
-    //prepare response put in expected data struct format
-    qry.outPut =& output;
-
-    //write to output
-    io->writeBuff(&qry);
-
-    //log in console
+    
     userIO->log("Product list has been updated...");
      return 1;
  }
+
+
+/*void Application::saveRequest(IDatabaseService::RequestInfo req){
+    //get the lock
+    std::unique_lock<std::mutex> lk(Application::requestsTableLock);
+    requestToClient[req.id()] = req;
+};
+
+
+IDatabaseService::RequestInfo Application::getRequest(StdSystem::RequestId i){
+    IDatabaseService::RequestInfo r;
+    {
+        std::unique_lock<std::mutex> lk(Application::requestsTableLock);
+        r = requestToClient[i];
+    }
+    return r;
+};
+
+
+
+void Application::clearRequest(RequestId id){
+    //safely removes an item from the table first locks it 
+
+    std::unique_lock<std::mutex> lk(Application::requestsTableLock);
+    requestToClient.erase(id);
+};*/
+
+
+void Application::processDBResponse(){
+    //waits untill database worker thread adds responses to response queue
+    //wakes up and services them
+
+
+    do{
+        {
+            std::unique_lock<std::mutex> lk(DatabaseServer::ResponseQueueLock);
+            //sleep if no responses
+            if(DatabaseServer::ResponseQueue.size()<=0)
+                DatabaseServer::resQueNotEmpty.wait(lk);
+        }    //std::cout<<"processDB Walken up  going to work\n";
+
+           {
+                
+                
+                auto rsp = DatabaseServer::popResponse();
+                //auto rqstInfo = Application::getRequest(rsp->requestId);
+
+                int triggerEvent = rsp->request.triggerEvent;
+                //std::cout<<"trigger Event returned is "<<rsp->request.client<<"\n";
+                
+                IUserInterface *userIO = rsp->request.client;
+                
+                Winny::UserOutputArg output;
+
+                if(triggerEvent == CmdUpdateProductsList){
+                    //prepare search results output
+                    output.ok = rsp->ok; 
+                    output.message = rsp->message;
+                    output.event = triggerEvent;
+                    output.args = & (rsp->data);
+
+                    //send them to output
+                    std::cout<<"Process response ready, locking interface \n";
+                    Fl::lock();
+
+                    userIO->writeBuff(&output);
+
+                    Fl::unlock();
+                    std::cout<<"processDB done refreshing inteface, unlocked\n";
+
+                }else{
+                    //std::cout<<"ProcessDB couldn't match this response to a known event \n";
+                }
+            }
+
+    }while (true);
+};
 
 #undef screen

@@ -2,24 +2,29 @@
 #include "IExtEventSource.h"
 #include "FlScreen.h"
 #include <Application.H>
+#include <DatabaseServer.h>
 
 //#include "FltkFactory.h"
 
-FlScreen* screen;
-Application* APP;
-IExtEventSource* eventSource;
 
 void initialiseSystem(){
-    FlScreen* scrn = new FlScreen();
-    screen =  scrn;
+    Fl::lock();
 
-    eventSource = screen;    
-    APP = new Application();
-    screen->Attach(APP);
-    APP->uiScreen(scrn);
+   //step one Initilise Module objects;
 
+    //allocate UserIO module
+    FlScreen* screen = new FlScreen();
+   
+    //allocate DatabaserverIO Object to work as database module
+    DatabaseServer* DB = new DatabaseServer();
+
+    //Allocate Application object to work as Application module
+    //and connect the modules together
+    Application* APP = new Application(screen,DB);
+
+    //begin user IO lop
     screen->show(); //show after completing setup
-    eventSource->run();
+    screen->run();
 };
 
 int main(){

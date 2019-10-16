@@ -2,7 +2,8 @@
 #define WDS_DATASERVER__H
 
 #include <IDatabaseServer.h>
-#include <stack>//for implementing the stack
+#include <queue>//for implementing the stack
+#include <stack>
 #include <mutex> //for locking
 #include <condition_variable> //for locking
 #include <thread> //a local thread
@@ -33,12 +34,11 @@ class DatabaseServer : public IDatabaseService{
     DatabaseServer();
 
 
-    int process(RequestInfo rqst);
+    int process(IDatabaseService::RequestInfo rqst);
 
-    private:
+//////////////request queue and locks///////////////////////////////
     /*list of Pending requests*/
-    static std::stack <RequestInfo> RequestQueue;
-
+    static std::queue <RequestInfo> RequestQueue;
     /*server() waits on this*/
     static std::condition_variable notEmpty;
 
@@ -48,8 +48,19 @@ class DatabaseServer : public IDatabaseService{
     /*allocates thread object to contain server thread*/
     std::thread svr;
 
-    /*the actual server doing the work*/
+    /*the actual server doing the work
+     Server should do any*/
     static void server(); 
+
+    /*helper function to server to actually do the work*/
+    static void doit(RequestInfo request);
+
+//////////////response queue and locks////////////////////////////////
+  /*list of ready responses*/
+    static std::queue <Response*> ResponseQueue;
+    static std::mutex ResponseQueueLock;
+    static std::condition_variable resQueNotEmpty;
+    static Response* popResponse();
 };
 
 

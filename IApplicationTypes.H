@@ -1,3 +1,18 @@
+/*Winny is currently separated into 3 broad functional modules
+ * 1. the userIO module: provides input output to winny users
+ * 2. the application module: which is the centrol controllor, and owner of all modules
+ * 3. the databaseServer module: which provides storage of data.
+ * these modules work as follows.
+ * Users interact with the UserIO module to issue commands to winny. and optionally pass
+ * data. the UserIO module thread seats in a tight loop waiting for user's requests
+ * which it passes to the application module for processing. the application module 
+ * processes the command optionally calling the databaseServer module for additional
+ * data. and when results are ready, passes them to the userIO module . the user reads
+ * the results off the userIO module.
+ * 
+ * This file defines the argument datatypes for all of the command arguments as exchanged between
+ * these modules.*/
+
 #ifndef _WINNYAPPLICATION_TYPES_H
 #define _WINNYAPPLICATION_TYPES_H
 #include <string>
@@ -5,7 +20,43 @@
 #include <gmdataset.h>
 
 namespace Winny {
-  using namespace std;
+  using std::string;
+
+    /*****ARGUMENT TYPES********/
+
+    struct UserInputArg{
+        /*Adress of the IODevice that generated the Input Request*/
+        IUserInterface* interface;
+
+        /*The Event name*/
+        int event;
+
+        /*The Event specific output data. */
+        MemAddress args; 
+    };
+
+
+
+    struct UserOutputArg{
+        /*The Input Event that requested the output*/
+        int event;
+
+        /*If input event was an operation request, this 
+         *flag tells if it completed successfully */
+        int ok;
+
+        /*If input event was an operation request, this 
+         * variable contains a message an optional message of
+         * for example how operation succeded eg rows returned */
+        variable message;
+
+        /*The Event specific output data. Each IInterface knows 
+         *interpletes this differently*/
+        MemAddress args;
+    };
+
+
+
    
     enum State {
         //A State variable holds a flag of possible states of application

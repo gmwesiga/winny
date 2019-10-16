@@ -282,6 +282,7 @@ static bool raisedAlready=false;
 void FlScreen::show(){
     if (!raisedAlready){
        // log("Show Called");
+       //fl_alert("About to raise signal");
         raiseEvent(SigUserIOready,this);
         raisedAlready = true;
     }

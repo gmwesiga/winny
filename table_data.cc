@@ -14,7 +14,7 @@ static styling defaultStyle = {
 };
 
 
-variable::variable():_type(NUMBER), _style(defaultStyle) {};       
+variable::variable():_type(NUMBER), _style(defaultStyle),_number(0) {};       
 
 //constuct with int
 variable::variable( wnumber i){

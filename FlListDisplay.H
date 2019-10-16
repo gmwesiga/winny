@@ -42,7 +42,7 @@ class FlListDisplay : public IUserInterface , public Fl_Group{
     Fl_Menu_Button *filter;
     Fl_Input       *searchToken;
     dataset_view   *itemsList;
-    dataset        *output;
+    dataset        output;
     Fl_Box         *menuBarResizer;
     typeHandler cb;
     Winny::QueryCond queryCond;

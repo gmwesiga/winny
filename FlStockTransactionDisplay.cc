@@ -145,8 +145,8 @@ listItems(0,4),record(nullptr)
 
    // spacer = new Fl_Box(DCX(1),DCY(1),1,1);
 
-    //resizer = new Fl_Box(CONTENT_AREA2.W - 10,319,1,1);
-    //resizable(resizer);
+    resizer = new Fl_Box(CONTENT_AREA2.W - 10,319,1,1);
+    resizable(resizer);
     
     set_winny_window_theme(this);
 
