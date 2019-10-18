@@ -299,6 +299,7 @@ void FlStockTransactionDisplay::handleUiLib(Fl_Widget* w){
 
             //clear form
             productName->value("");//
+            productName->take_focus();
             itemQty->value("");
             itemRate->value("");
             itemQty->value("");
@@ -306,6 +307,7 @@ void FlStockTransactionDisplay::handleUiLib(Fl_Widget* w){
             btnClearAll->activate();
             btnclear->activate();
             btnEdit->activate();
+
 
             //if(btnClearAll->active_r())fl_alert("fuck");
 

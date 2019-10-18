@@ -90,7 +90,7 @@ void dataset_view::draw_cell(TableContext context, int R, int C, int X, int Y, i
 void dataset_view::draw_data(table_data& dt, int X, int Y, int W, int H)
 {
     //set the backcolor using backcolor of data itself, that way different cells can be given different colors
-    fl_color(wcolor2flcolor(dt.style().backcolor));
+    fl_color(backcolor);
 
     //set the font to use and its size
     fl_font(WINNY_NORMALFONT,WINNY_NORMALTEXT_FONTSIZE);         //prepare to draw text
@@ -226,23 +226,73 @@ void dataset_view::dataview_cb(dataset* d, void* v){
 
 
 int dataset_view::handle(int e){
+   
     int psr = select_row>=0?select_row:0;//previous selected row
-    int ret = Fl_Table::handle(e);
-     if (e == FL_MOVE 
-        || (e== FL_KEYDOWN && Fl::event_key()== FL_Down)
-        || (e== FL_KEYDOWN && Fl::event_key()== FL_Up)){
-         int ctx, R,C; ResizeFlag rf;
-			ctx = cursor2rowcol(R,C,rf);
-            if(ctx!=CONTEXT_CELL)return ret; 
-			if(R==select_row ||R==current_row) {return 1;}
+    Fl_Table::TableContext ctx;
+    int R,C; ResizeFlag rf;
+    
+     if (e == FL_MOVE ){
+		ctx = cursor2rowcol(R,C,rf);
+        if(ctx!=CONTEXT_CELL)return 1; 
+		if(R==select_row ||R==current_row) {return 1;}
 			
-            dsv_select_row= R;
-           // take_focus();//keep focus
-        //redraw();
-     }
-        set_selection(select_row,0,select_row,rightcol);//select this row
+        dsv_select_row= R;
         redraw_range(toprow,botrow,0,rightcol);
-    if (e==FL_PUSH) take_focus();//krudge. 
+        return 1;
+
+     } else if (e == FL_PUSH){
+        //user wants to select this row and has clicked on it
+        //select it, show you have, and docallback
+
+        //we need these values (the row, col )in order to do callback
+        ctx = cursor2rowcol(R,C,rf);
+        if(ctx!=CONTEXT_CELL)
+            //let Table handle scrollbars, and doing the callback
+            return Fl_Table::handle(e);; 
+
+        //the dsvrow is now the select row. since mouse has not moved 
+        select_row = dsv_select_row;
+        redraw_range(toprow,botrow,0,rightcol);
+        
+        //also give focus to keyboard if even't happened in data area,
+        take_focus();
+
+     }
+
+     if(e== FL_KEYDOWN){
+         //user is trying to change selection with keys...
+         //if its keydown or up, update hover selection (dsv)
+         //if he pressed enter, select the current dsv value as the select row
+
+         int flg = 0;//a flag of whether we do callback on enter key. 
+                     //if user presses key more than once, do it once only
+
+         //std::cout<<"dsv was "<<dsv_select_row;
+         if( Fl::event_key()== FL_Down)
+            dsv_select_row = dsv_select_row>=botrow?botrow: ++dsv_select_row;
+            
+         else if(Fl::event_key()== FL_Up)
+            dsv_select_row = dsv_select_row<=toprow?toprow: --dsv_select_row;
+        
+         else if(Fl::event_key()== FL_Enter){
+            flg = dsv_select_row!=select_row?1:0; //do callback only once
+            set_selection(dsv_select_row,0,dsv_select_row,rightcol);//select this row
+         }
+
+         else 
+            //handle all other keys with default behaviour
+            return Fl_Table::handle(e);
+
+        redraw_range(toprow,botrow,0,rightcol);
+        //std::cout<<"dsv is now "<<dsv_select_row<<"\n";
+        //std::cout<<"selectrow  "<<select_row<<"\n";
+
+        if(flg)do_callback(Fl_Table::TableContext::CONTEXT_CELL,select_row,select_col);
+
+        return 1;
+        }
+
+    int ret = Fl_Table::handle(e);
     return ret;
 
 };

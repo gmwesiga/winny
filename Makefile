@@ -7,19 +7,22 @@ objects = winny.o FlScreen.o IExtEventSource.o \
 			w_transaction.o DatabaseServer.o Globals_DatabaseServer.o
 commonUIHeaders = FWidgetSizes.H winny_theme.h WinnyUserPrompts.H
 
-#FLDLIBS = -mwindows -lfltk_images -lfltk_png -lfltk_z -lfltk -lole32 -luuid -lcomctl32
-FLDLIBS = -lfltk_images -lfltk_png -lfltk_z -lfltk -lpthread -ldl -lm -lX11
+FLDLIBS = -mwindows -lfltk_images -lfltk_png -lfltk_z -lfltk -lole32 -luuid -lcomctl32
+#FLDLIBS = -lfltk_images -lfltk_png -lfltk_z -lfltk -lpthread -ldl -lm -lX11
 
-FLDFLAGS = -L/usr/local/lib
+FLDFLAGS = -L/usr/local/lib -static-libgcc -static-libstdc++ #-static-libgcc and -static-libstdc++ are to 
+														#solve no libstdc found error.
+CXX = x86_64-w64-mingw32-g++ #cross compiler while on linux
+
 FLCXXFLAGS = -g -I. -I/usr/local/include -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE \
-              -D_THREAD_SAFE -D_REENTRANT  -std=gnu++11 #FLCXXFLAGS = FLTK CXX FLAGS
+              -D_THREAD_SAFE -D_REENTRANT -std=c++11 -std=gnu++11 #FLCXXFLAGS = FLTK CXX FLAGS
 #remember to remove -g option in production
 CXXFLAGS += $(FLCXXFLAGS)
 LDLIBS += $(FLDLIBS)
 LDFLAGS += $(FLDFLAGS)
 
 winny : $(objects)
-	g++ -owinny $(objects) $(LDFLAGS) $(LDLIBS)
+	CXX -owinny $(objects) $(LDFLAGS) $(LDLIBS)
 #	rm *o
 
 winny.o           : IScreen.h  IExtEventSource.h FlScreen.h

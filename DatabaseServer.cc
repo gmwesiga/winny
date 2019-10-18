@@ -42,13 +42,14 @@ void DatabaseServer::server(){
                 
                 //wait for process to add request in queue
                 if(RequestQueue.size()<=0){
-                    //std::cout<<"Server found nothing in queue, going to sleep\n";
+                    std::cout<<"Server found nothing in queue, going to sleep\n";
                     //release lock and wait for application layer to add a request
                     notEmpty.wait(lock);
+                    if(!RequestQueue.size()) continue; //something else woke us up
+                    std::cout<<"Server woken up to process\n";
                 }
                     //if here, application added request and called us,
                     //wait acquired lock for use, so we have lock 
-                    //std::cout<<"Server woken up to process\n";
                 //get request
                 rqst = RequestQueue.front();
                 RequestQueue.pop();   
@@ -60,11 +61,12 @@ void DatabaseServer::server(){
                 doit(rqst);
 
                 //notify client of response
+                int notify = 0;
                 {
                 std::unique_lock<std::mutex> lk(ResponseQueueLock);
                 ResponseQueue.push((IDatabaseService::Response*)rqst.responseBuffer);
                 }
-                if(ResponseQueue.size()==1)//was previously empty
+                if(ResponseQueue.size()==1)//was previously empty >1 means its already awake
                     resQueNotEmpty.notify_one();
 
         }while(true);
@@ -74,45 +76,44 @@ void DatabaseServer::server(){
 
 
 void DatabaseServer::doit(RequestInfo request){
-    //Performs required operation and writes response in request.responseBuffer
+//Performs required operation and writes response in request.responseBuffer
 
-    
     IDatabaseService::Response* response = (IDatabaseService::Response*)request.responseBuffer;
     
     //std::cout<<"processing request in db trigger event sent here is"<<request.triggerEvent<<"\n";
-    switch (request.request)
-    {
-    case IDatabaseService::Request::GETL_PRODTS:
-       {
-        //sizes of our dataset response //lets use response and request terms
-        int rc = 50; int cc = 10; 
+    switch (request.request){
 
-        //resize response
-        response->data.set_rows(rc);
-        response->data.set_cols(cc);
+        case IDatabaseService::Request::GETL_PRODTS:
+        {
+            //sizes of our dataset response //lets use response and request terms
+            int rc = 50; int cc = 10; 
 
-        //populate it with some garbage data for now
-        for (int r=0; r<rc; r++){
-            for (int c=0; c<cc; c++){
-                 response->data.data(r,c,(c+r)*rand());
-                if(response->data.data(r,c).number()>300000){
-                    response->data.data(r,c).style().forecolor = wcolor(0,125,12);   
+            //resize response
+            response->data.set_rows(rc);
+            response->data.set_cols(cc);
+
+            //populate it with some garbage data for now
+            for (int r=0; r<rc; r++){
+                for (int c=0; c<cc; c++){
+                    response->data.data(r,c,(c+r)*rand());
+                    if(response->data.data(r,c).number()>300000){
+                        response->data.data(r,c).style().forecolor = wcolor(0,125,12);   
+                    }
+                    response->data.data(r,c).style().borders = Borders::LEFT_RIGHT_BORDER;
+                    
                 }
-                response->data.data(r,c).style().borders = Borders::LEFT_RIGHT_BORDER;
-                
-            }
-        }   
-        response->ok = 1;
-        response->requestId = request.id();
-        response->message= variable("Search executed successfully");
-        response->request = request;
+            }   
+            response->ok = 1;
+            response->requestId = request.id();
+            response->message= variable("Search executed successfully");
+            response->request = request;
 
-       }
-    break;
-    
-    default:
+        }
         break;
-    }
+        
+        default:
+            break;
+        }
 }
 
 

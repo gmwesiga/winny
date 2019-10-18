@@ -132,48 +132,50 @@ void Application::processDBResponse(){
     //waits untill database worker thread adds responses to response queue
     //wakes up and services them
 
-
     do{
-        {
-            std::unique_lock<std::mutex> lk(DatabaseServer::ResponseQueueLock);
-            //sleep if no responses
-            if(DatabaseServer::ResponseQueue.size()<=0)
-                DatabaseServer::resQueNotEmpty.wait(lk);
-        }    //std::cout<<"processDB Walken up  going to work\n";
+        std::unique_lock<std::mutex> lk(DatabaseServer::ResponseQueueLock);
+        //sleep if no responses
+        if(DatabaseServer::ResponseQueue.size()<=0){
+            std::cout<<"processing thread going to sleep \n";
+            DatabaseServer::resQueNotEmpty.wait(lk);
+            if(!DatabaseServer::ResponseQueue.size()) continue; //something else woke us up
+            std::cout<<"process thread Walken up  going to work\n";
 
-           {
-                
-                
-                auto rsp = DatabaseServer::popResponse();
-                //auto rqstInfo = Application::getRequest(rsp->requestId);
+        }
+        lk.unlock();  
+    
+        auto rsp = DatabaseServer::popResponse();
+        //auto rqstInfo = Application::getRequest(rsp->requestId);
 
-                int triggerEvent = rsp->request.triggerEvent;
-                //std::cout<<"trigger Event returned is "<<rsp->request.client<<"\n";
-                
-                IUserInterface *userIO = rsp->request.client;
-                
-                Winny::UserOutputArg output;
+        int triggerEvent = rsp->request.triggerEvent;
+        std::cout<<"trigger Event returned is "<<rsp->request.client<<"\n";
+        
+        IUserInterface *userIO = rsp->request.client;
+        
+        Winny::UserOutputArg output;
 
-                if(triggerEvent == CmdUpdateProductsList){
-                    //prepare search results output
-                    output.ok = rsp->ok; 
-                    output.message = rsp->message;
-                    output.event = triggerEvent;
-                    output.args = & (rsp->data);
+        if(triggerEvent == CmdUpdateProductsList){
+            //prepare search results output
+            output.ok = rsp->ok; 
+            output.message = rsp->message;
+            output.event = triggerEvent;
+            output.args = & (rsp->data);
 
-                    //send them to output
-                    std::cout<<"Process response ready, locking interface \n";
-                    Fl::lock();
+            //send them to output
+            //std::cout<<"Process response ready, locking interface \n";
+            Fl::lock();
 
-                    userIO->writeBuff(&output);
+            userIO->writeBuff(&output);
 
-                    Fl::unlock();
-                    std::cout<<"processDB done refreshing inteface, unlocked\n";
+            Fl::unlock();
+            //std::cout<<"processDB done refreshing inteface, unlocked\n";
 
-                }else{
-                    //std::cout<<"ProcessDB couldn't match this response to a known event \n";
-                }
-            }
+        }else{
+            //std::cout<<"ProcessDB couldn't match this response to a known event \n";
+        }
+
+        //ALWAYS REMEMBER TO CLEAN MEMORY
+        delete rsp;
 
     }while (true);
 };
