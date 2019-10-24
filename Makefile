@@ -4,11 +4,13 @@ objects = winny.o FlScreen.o IExtEventSource.o \
 			dataset.o dataset_view.o table_data.o color.o FlCreateContactDisplay.o \
 			Application.o FlNotificationDisplay.o FlOffPremiseSaleUserIO.o \
 			FlCashFlowDisplay.o WinnyUserPrompts.o time.o FlStockTransactionDisplay.o \
-			w_transaction.o DatabaseServer.o Globals_DatabaseServer.o
+			w_transaction.o DatabaseServer.o 
 commonUIHeaders = FWidgetSizes.H winny_theme.h WinnyUserPrompts.H IApplicationTypes.H
 
-FLDLIBS = -mwindows -lfltk_images -lfltk_png -lfltk_z -lfltk -lole32 -luuid -lcomctl32
-#FLDLIBS = -lfltk_images -lfltk_png -lfltk_z -lfltk -lpthread -ldl -lm -lX11
+#FLDLIBS = -mwindows -lfltk_images -lfltk_png -lfltk_z -lfltk -lole32 -luuid -lcomctl32
+FLDLIBS = -mwindows -lfltk_images  -lfltk -lole32 -luuid -lcomctl32 #cygwin windows version
+#FLDLIBS = -lfltk_images -lfltk_png -lfltk_z -lfltk -lpthread -ldl -lm -lX11 
+#FLDLIBS = -lfltk_images -lfltk -lpthread -ldl -lm -lX11 #cygwin version
 
 FLDFLAGS = -L/usr/local/lib -static-libgcc -static-libstdc++ #-static-libgcc and -static-libstdc++ are to 
 														#solve no libstdc found error.

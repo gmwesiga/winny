@@ -22,19 +22,21 @@
 
 namespace Winny 
 {
-  using std::string;
+  //using std::string;
 
     /*****ARGUMENT TYPES********/
-
-    struct UserInputArg {
+ struct UserInputArg {
         /*Adress of the IODevice that generated the Input Request*/
-        IUserInterface* interface;
+        IUserInterface *sourceInterface;
 
         /*The Event name*/
         int event;
 
         /*The Event specific output data. */
         MemAddress args; 
+
+
+        //IUserInterface *sourceInterface;
     };
 
 
@@ -57,8 +59,7 @@ namespace Winny
         MemAddress args;
     };
 
-
-
+using std::string;
    
     enum State {
         //A State variable holds a flag of possible states of application

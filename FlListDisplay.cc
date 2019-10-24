@@ -180,7 +180,7 @@ void productListCb(IUserInterface *o, int e){
         {
             Winny::UserInputArg args;
             args.event = CmdUpdateProductsList;
-            args.interface = o;
+            //args.sourceInterface = o;
             args.args = nullptr;
             o->raiseEvent(CmdUpdateProductsList,&args);
         }
@@ -193,7 +193,7 @@ void productListCb(IUserInterface *o, int e){
         {
             Winny::UserInputArg args;
             args.event = CmdUpdateProductsList;
-            args.interface = o;
+            args.sourceInterface = o;
             args.args = nullptr;
             o->raiseEvent(CmdUpdateProductsList,&args);
         }

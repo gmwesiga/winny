@@ -70,7 +70,7 @@ int Application::handle(sEvent cmd,void *eData){
             //std::cout<<"preparing request \n";
             arg = (Winny::UserInputArg*)eData;
             IDatabaseService::RequestInfo rqst;
-            rqst.client = arg->interface;
+            rqst.client = arg->sourceInterface;
             rqst.args = arg->args;
             rqst.request = IDatabaseService::Request::GETL_PRODTS;
             rqst.triggerEvent = arg->event;
