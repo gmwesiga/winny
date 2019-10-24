@@ -47,7 +47,7 @@ class Application : public StdSystem::IApplication {
         StdSystem::IDatabaseService *databaseIOServer;
 
         /*worker thread*/
-        std::thread bgworker;
+        //std::thread bgworker;
     
 };
  

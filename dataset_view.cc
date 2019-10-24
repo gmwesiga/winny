@@ -233,8 +233,8 @@ int dataset_view::handle(int e){
     
      if (e == FL_MOVE ){
 		ctx = cursor2rowcol(R,C,rf);
-        if(ctx!=CONTEXT_CELL)return 1; 
-		if(R==select_row ||R==current_row) {return 1;}
+        if(ctx!=CONTEXT_CELL)Fl_Table::handle(e); 
+		if(R==select_row ||R==current_row) {Fl_Table::handle(e);}
 			
         dsv_select_row= R;
         redraw_range(toprow,botrow,0,rightcol);

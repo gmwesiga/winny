@@ -6,6 +6,7 @@
 #include <stack>
 #include <mutex> //for locking
 #include <condition_variable> //for locking
+#include <pthread.h>
 #include <thread> //a local thread
 
 
@@ -40,13 +41,15 @@ class DatabaseServer : public IDatabaseService{
     /*list of Pending requests*/
     static std::queue <RequestInfo> RequestQueue;
     /*server() waits on this*/
-    static std::condition_variable notEmpty;
+    //static std::condition_variable notEmpty;
+    static pthread_cond_t notEmpty;
 
     /*synchronise process() and server() access to RequestQueue*/
-    static std::mutex queueLock;
+    //static std::mutex queueLock;
+    static pthread_mutex_t queueLock;
 
     /*allocates thread object to contain server thread*/
-    std::thread svr;
+    //std::thread svr;
 
     /*the actual server doing the work
      Server should do any*/
@@ -58,8 +61,10 @@ class DatabaseServer : public IDatabaseService{
 //////////////response queue and locks////////////////////////////////
   /*list of ready responses*/
     static std::queue <Response*> ResponseQueue;
-    static std::mutex ResponseQueueLock;
-    static std::condition_variable resQueNotEmpty;
+    //static std::mutex ResponseQueueLock;
+    static pthread_mutex_t ResponseQueueLock;
+    static pthread_cond_t resQueNotEmpty;
+    //static std::condition_variable resQueNotEmpty;
     static Response* popResponse();
 };
 

@@ -18,13 +18,15 @@
 #include <string>
 #include <vector>
 #include <gmdataset.h>
+#include <IUserInterface.h>
 
-namespace Winny {
+namespace Winny 
+{
   using std::string;
 
     /*****ARGUMENT TYPES********/
 
-    struct UserInputArg{
+    struct UserInputArg {
         /*Adress of the IODevice that generated the Input Request*/
         IUserInterface* interface;
 

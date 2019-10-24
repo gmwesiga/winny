@@ -2,28 +2,60 @@
 #include <thread>
 #include <IExtEventSource.h> //for SigDATAREADY
 #include <iostream>
+#include <pthread.h>
+
+/*23 oct: portability requirements  have necesitated we reimplement the threading
+ *        logic with pthreads insted of the c++11 threads library which seems not
+ *        to be implemented generaly by most gnu cross compilers. 
+ *        The new requirement is that the threading code should be compilable by
+ *        any cross compiler*/
+
+StdSystem::RequestId IDatabaseService::RequestInfo::_nextid_ = 0;
+
+//initialisation of pthread locks
+pthread_mutex_t DatabaseServer::queueLock = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t  DatabaseServer::notEmpty = PTHREAD_COND_INITIALIZER;
+std::queue<IDatabaseService::RequestInfo>   DatabaseServer::RequestQueue;
+
+pthread_mutex_t DatabaseServer::ResponseQueueLock = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t  DatabaseServer::resQueNotEmpty = PTHREAD_COND_INITIALIZER;
+std::queue <IDatabaseService::Response*>     DatabaseServer::ResponseQueue;
+
+
+
+
+/*This pthread_thread is a wrapper around the actual our thread function
+ *it adapts the server interface to the one required by pthreads.*/
+static void* pthreadServerFunc(void* arg){
+    DatabaseServer::server();
+}
 
 
 DatabaseServer::DatabaseServer()
 //allocate server() program to its thread and begin executing it
-:svr(DatabaseServer::server)
-{ }
+//:svr(DatabaseServer::server)
+{
+    //launch the server thread
+    pthread_t id;
+    pthread_create(&id,nullptr,pthreadServerFunc,nullptr);
+ }
 
 
 int DatabaseServer::process(RequestInfo rqst){
     //acquire the lock
-    {
-    std::unique_lock<std::mutex> lock(queueLock);
+    pthread_mutex_lock(&queueLock);
+    //std::unique_lock<std::mutex> lock(queueLock);
     //std::cout<<"process: lock Acquired \n";
     //add request to server processing queue
     RequestQueue.push(rqst);
     //std::cout<<"request pushed with trigger "<<rqst.triggerEvent<<"\n";
     //release the lock
-    }
+    pthread_mutex_unlock(&queueLock);
 
     //wake up server() if queue had been empty
     if(RequestQueue.size()==1)
-        notEmpty.notify_one();
+        //notEmpty.notify_one();
+        pthread_cond_signal(&notEmpty);
     //std::cout<<"server notified\n";
     return 1;
 };
@@ -35,41 +67,44 @@ void DatabaseServer::server(){
     RequestInfo rqst;
     
     do{  
-            //wait untill there is a request in queue
-            {
-                //to call wait, you need to acquire lock first
-                std::unique_lock<std::mutex> lock(queueLock);
-                
-                //wait for process to add request in queue
-                if(RequestQueue.size()<=0){
-                    std::cout<<"Server found nothing in queue, going to sleep\n";
-                    //release lock and wait for application layer to add a request
-                    notEmpty.wait(lock);
-                    if(!RequestQueue.size()) continue; //something else woke us up
-                    std::cout<<"Server woken up to process\n";
-                }
-                    //if here, application added request and called us,
-                    //wait acquired lock for use, so we have lock 
-                //get request
-                rqst = RequestQueue.front();
-                RequestQueue.pop();   
-            
-            }  //release lock by exiting scope
+        //wait untill there is a request in queue
+            //to call wait, you need to acquire lock first
+            //std::unique_lock<std::mutex> lock(queueLock);
+            pthread_mutex_lock(&queueLock);
+            //wait for process to add request in queue
+            if(RequestQueue.size()<=0){
+                //std::cout<<"Server found nothing in queue, going to sleep\n";
+                //release lock and wait for application layer to add a request
+                //notEmpty.wait(lock);
+                pthread_cond_wait(&notEmpty,&queueLock);
+                if(!RequestQueue.size()) continue; //something else woke us up
+                //std::cout<<"Server woken up to process\n";
+            }
+                //if here, application added request and called us,
+                //wait acquired lock for use, so we have lock 
+            //get request
+            rqst = RequestQueue.front();
+            RequestQueue.pop();   
+            pthread_mutex_unlock(&queueLock);
+          //release lock by 
 
-                //process
-                IDatabaseService::Response res;
-                doit(rqst);
+            //process
+            IDatabaseService::Response res;
+            doit(rqst);
 
-                //notify client of response
-                int notify = 0;
-                {
-                std::unique_lock<std::mutex> lk(ResponseQueueLock);
-                ResponseQueue.push((IDatabaseService::Response*)rqst.responseBuffer);
-                }
-                if(ResponseQueue.size()==1)//was previously empty >1 means its already awake
-                    resQueNotEmpty.notify_one();
+            //notify client of response
+            int notify = 0;
+            //{
+            //std::unique_lock<std::mutex> lk(ResponseQueueLock);
+            pthread_mutex_lock(&ResponseQueueLock);
+            ResponseQueue.push((IDatabaseService::Response*)rqst.responseBuffer);
+            pthread_mutex_unlock(&ResponseQueueLock);
+            //}
+            if(ResponseQueue.size()==1)//was previously empty >1 means its already awake
+                //resQueNotEmpty.notify_one();
+                pthread_cond_signal(&resQueNotEmpty);
 
-        }while(true);
+    }while(true);
 
 };
 
@@ -119,9 +154,11 @@ void DatabaseServer::doit(RequestInfo request){
 
 IDatabaseService::Response* DatabaseServer::popResponse(){
     IDatabaseService::Response* r;
-    std::unique_lock<std::mutex> lk(DatabaseServer::ResponseQueueLock);
+    //std::unique_lock<std::mutex> lk(DatabaseServer::ResponseQueueLock);
+    pthread_mutex_lock(&ResponseQueueLock);
     r = ResponseQueue.front();
     ResponseQueue.pop();
-    lk.unlock();
+    pthread_mutex_unlock(&ResponseQueueLock);
+    //lk.unlock();
     return r;
 };

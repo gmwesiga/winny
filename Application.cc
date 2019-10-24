@@ -7,13 +7,22 @@
 
 #define screen scrn
 
+
+//Adapter for pthread interface
+static void* pthreadAdapterFunc(void* arg){
+    Application::processDBResponse();
+}
+
+
 //Constructor optionally sets reference to the UI to be
 //used for application data input and output
 Application::Application(FlScreen* sn,StdSystem::IDatabaseService* db)
     :userIO(sn),
-    databaseIOServer(db),
-    bgworker(Application::processDBResponse)
+    databaseIOServer(db)
+    //bgworker(Application::processDBResponse)
 {
+    pthread_t id;
+    pthread_create(&id,nullptr,pthreadAdapterFunc,nullptr); 
     //remember to assign self to screen
     if(sn) sn->Attach(this);
     return;
@@ -58,7 +67,7 @@ int Application::handle(sEvent cmd,void *eData){
         case CmdsearchProduct:
         case CmdUpdateProductsList:
         {
-            std::cout<<"preparing request \n";
+            //std::cout<<"preparing request \n";
             arg = (Winny::UserInputArg*)eData;
             IDatabaseService::RequestInfo rqst;
             rqst.client = arg->interface;
@@ -133,22 +142,25 @@ void Application::processDBResponse(){
     //wakes up and services them
 
     do{
-        std::unique_lock<std::mutex> lk(DatabaseServer::ResponseQueueLock);
+        //std::unique_lock<std::mutex> lk(DatabaseServer::ResponseQueueLock);
+        pthread_mutex_lock(&DatabaseServer::ResponseQueueLock);
         //sleep if no responses
         if(DatabaseServer::ResponseQueue.size()<=0){
-            std::cout<<"processing thread going to sleep \n";
-            DatabaseServer::resQueNotEmpty.wait(lk);
+            //std::cout<<"processing thread going to sleep \n";
+            //DatabaseServer::resQueNotEmpty.wait(lk);
+            pthread_cond_wait(&DatabaseServer::resQueNotEmpty,&DatabaseServer::ResponseQueueLock);
             if(!DatabaseServer::ResponseQueue.size()) continue; //something else woke us up
-            std::cout<<"process thread Walken up  going to work\n";
+            //std::cout<<"process thread Walken up  going to work\n";
 
         }
-        lk.unlock();  
+        //lk.unlock(); 
+        pthread_mutex_unlock(&DatabaseServer::ResponseQueueLock);
     
         auto rsp = DatabaseServer::popResponse();
         //auto rqstInfo = Application::getRequest(rsp->requestId);
 
         int triggerEvent = rsp->request.triggerEvent;
-        std::cout<<"trigger Event returned is "<<rsp->request.client<<"\n";
+        //std::cout<<"trigger Event returned is "<<rsp->request.client<<"\n";
         
         IUserInterface *userIO = rsp->request.client;
         
