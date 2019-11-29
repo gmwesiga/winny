@@ -50,7 +50,7 @@ namespace StdSystem {
             //the requested operation
             Request request; 
 
-            //address of client app where to send response, initially null
+            //address of client io-object where to send response, initially null
             IUserInterface* client; 
 
             //address to memory to put response initiall null

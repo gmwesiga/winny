@@ -1,13 +1,32 @@
+/****NOTES*****
+ * 28 NOVEMBER 2019
+ * Implications of switching to a Bus driven
+ * The decision to have the winny UI module run as a separate process module (not procedure module)
+ * communicating to the rest of winny over a bus has necesitated need to change some aspects of the
+ * Winny IUserInterface because the initial design doesn't fit well with the new process module centered
+ * design.
+ * the original design assumed an application object, a top level UI module, and 3, several mid-level
+ * UI objects that implemented individual functionality.
+ * the role of the top level UI was to act as afacade and provide the UI interface as required by application
+ * eg which roles to show, etc
+ * 
+ * A challenge was how to pass the application reference to the midlevel UIs,  
+*/
 #ifndef IUserInterface_h
 #define IUserInterface_h
 #include <string>
 #include <IExtEventSource.h>
+#include <IApplication.h>
+#include <IApplicationTypes.H>
 //#include <IScreen.h>
 
 typedef std::string UIname; // name of IUserInterface Name
 #define MemAddress void*
 
-class IUserInterface :  public virtual StdSystem::IExtEventSource {
+class IUserInterface 
+    :  public virtual StdSystem::IExtEventSource 
+    ,  public virtual StdSystem::IApplication{ //for composite /aggregation UIs like SCreen that must aggregate multiple UIs into one
+    //virtual inheritance solves the diamond inheritance problem
     public:
     /*State a UI can be in*/
     enum State{
@@ -61,6 +80,9 @@ class IUserInterface :  public virtual StdSystem::IExtEventSource {
 
     virtual void run(){return;};//default is do nothing
 
+    virtual int handle(StdSystem::sEvent,void *eData){ return 1;};
+    //for aggregating UIs like Screen
+
     virtual ~IUserInterface(){};
 
     private:
@@ -70,6 +92,7 @@ class IUserInterface :  public virtual StdSystem::IExtEventSource {
 
    protected:
    std::string message; //last feedback message from application
+   Winny::UserInputArg args;
 };
 
 #endif

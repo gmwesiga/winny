@@ -3,7 +3,12 @@
 #include<FL/fl_ask.H> //todo remove this after production
 #include<stdlib.h>
 #include<iostream>
+#include<ServiceTypes.H>
+#include<CommBus.H>
 
+using StdSystem::Service::Request;
+using StdSystem::Service::Response;
+using StdSystem::Service::Operation;
 
 #define screen scrn
 
@@ -16,10 +21,8 @@ static void* pthreadAdapterFunc(void* arg){
 
 //Constructor optionally sets reference to the UI to be
 //used for application data input and output
-Application::Application(FlScreen* sn,StdSystem::IDatabaseService* db)
-    :userIO(sn),
-    databaseIOServer(db)
-    //bgworker(Application::processDBResponse)
+Application::Application(FlScreen* sn)
+    :userIO(sn)
 {
     pthread_t id;
     pthread_create(&id,nullptr,pthreadAdapterFunc,nullptr); 
@@ -49,10 +52,9 @@ void Application::uiScreen(FlScreen* sn){
 //whether the application implements or doesn't implement the action.
 
 int Application::handle(sEvent cmd,void *eData){
-    Winny::UserInputArg *arg;
-    IDatabaseService::Response *res;
+    Winny::UserInputArg *arg= (Winny::UserInputArg*)eData;
 
-    switch (cmd) {
+    switch (arg->event) {
 
         case SigUserIOready:
             curStatus.sessionInfo.currentOpgUnit.name = (char*)"Premium Distributors";//cast constness
@@ -68,16 +70,15 @@ int Application::handle(sEvent cmd,void *eData){
         case CmdUpdateProductsList:
         {
             //std::cout<<"preparing request \n";
-            arg = (Winny::UserInputArg*)eData;
-            IDatabaseService::RequestInfo rqst;
+            Request rqst;
             rqst.client = arg->sourceInterface;
             rqst.args = arg->args;
-            rqst.request = IDatabaseService::Request::GETL_PRODTS;
+            rqst.operation = Operation::GETL_PRODTS;
             rqst.triggerEvent = arg->event;
             //std::cout<<"trigger Event sent is "<<rqst.client<<"\n";
-            rqst.responseBuffer = new IDatabaseService::Response();
+            rqst.responseBuffer = new Response();
             //saveRequest(rqst);
-            databaseIOServer->process(rqst);
+            StdSystem::Bus::sendRequest(rqst);
         }
             break;
 
@@ -88,7 +89,7 @@ int Application::handle(sEvent cmd,void *eData){
         case CmdNavigateTo:
             {//char* data = (char*)eData;
             //userIO->log(string("navigating to ").append(data));
-            navigate((Winny::UserIODevName*)eData);}
+            navigate((Winny::UserIODevName*)arg->args);}
             break;
 /*         case CmdUpdateProductsList:
             userIO->log("***CmdUpdateProductsList...Delivered");
@@ -111,30 +112,7 @@ void Application::navigate (Winny::UserIODevName* n){
  }
 
 
-/*void Application::saveRequest(IDatabaseService::RequestInfo req){
-    //get the lock
-    std::unique_lock<std::mutex> lk(Application::requestsTableLock);
-    requestToClient[req.id()] = req;
-};
 
-
-IDatabaseService::RequestInfo Application::getRequest(StdSystem::RequestId i){
-    IDatabaseService::RequestInfo r;
-    {
-        std::unique_lock<std::mutex> lk(Application::requestsTableLock);
-        r = requestToClient[i];
-    }
-    return r;
-};
-
-
-
-void Application::clearRequest(RequestId id){
-    //safely removes an item from the table first locks it 
-
-    std::unique_lock<std::mutex> lk(Application::requestsTableLock);
-    requestToClient.erase(id);
-};*/
 
 
 void Application::processDBResponse(){
@@ -142,23 +120,11 @@ void Application::processDBResponse(){
     //wakes up and services them
 
     do{
-        //std::unique_lock<std::mutex> lk(DatabaseServer::ResponseQueueLock);
-        pthread_mutex_lock(&DatabaseServer::ResponseQueueLock);
-        //sleep if no responses
-        if(DatabaseServer::ResponseQueue.size()<=0){
-            //std::cout<<"processing thread going to sleep \n";
-            //DatabaseServer::resQueNotEmpty.wait(lk);
-            pthread_cond_wait(&DatabaseServer::resQueNotEmpty,&DatabaseServer::ResponseQueueLock);
-            if(!DatabaseServer::ResponseQueue.size()) continue; //something else woke us up
-            //std::cout<<"process thread Walken up  going to work\n";
-
-        }
-        //lk.unlock(); 
-        pthread_mutex_unlock(&DatabaseServer::ResponseQueueLock);
-    
-        auto rsp = DatabaseServer::popResponse();
+        //auto rsp = StdSystem::Bus::receiveResponse();
         //auto rqstInfo = Application::getRequest(rsp->requestId);
-
+        auto msg = StdSystem::Bus::receiveAt(APP_PORT);
+        Response* rsp = (Response*)msg.message;
+        
         int triggerEvent = rsp->request.triggerEvent;
         //std::cout<<"trigger Event returned is "<<rsp->request.client<<"\n";
         

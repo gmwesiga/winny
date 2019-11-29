@@ -5,6 +5,7 @@
 #include <IApplicationTypes.H> // createNew product screen name
 #include <FL/fl_ask.H>
 #include <stdlib.h>
+#include <iostream>
 using std::printf;
 
 /*The FlListDisplay is a generic list displayer page It accepts
@@ -117,6 +118,7 @@ void FlListDisplay::writeBuff(MemAddress buff){
     
     //printf("In writeBuff\n");
     //assume buff is a pointer to a useroutputarg
+    if(!buff)return;
     Winny::UserOutputArg* bf = (Winny::UserOutputArg*)buff;
     
     if(bf->event == CmdUpdateProductsList){
@@ -138,6 +140,7 @@ static Winny::UserIODevName pgname = Winny::UserIODevName::UIOQ_CREATE_PRODUCT;
 //is Called Whenever user clicks Create Product Link
 
 static void winProc ( Fl_Widget* w, void* o){
+    //std::cout <<"Event raised in UI\n";
     FlListDisplay *me = (FlListDisplay*)o;
     me->extEventsHandler(w);
 };    
@@ -145,17 +148,20 @@ static void winProc ( Fl_Widget* w, void* o){
 
 
  void FlListDisplay::extEventsHandler(Fl_Widget* o){
+     args.sourceInterface = this;
 
      if (!cb)return; //Return if no callback set
      //fl_alert("in handler..");
      if(o==btnNew){
-         cb(this,(int)CREATE); //callback raises Application specific Create Event
+         cb(this,(int)CREATE, &args); //callback raises Application specific Create Event
     
      }else if(o==btnEdit){
-         cb(this,(int)Query::EDIT);
+         cb(this,(int)Query::EDIT,&args);
 
      }else if(o==searchToken){
-         cb(this,(int)Query::SEARCH);
+         //std::cout<<"Original address "<<this<<"\n";
+         cb(this,(int)Query::SEARCH, &args);
+
      }
     return;
  }
@@ -163,7 +169,7 @@ static void winProc ( Fl_Widget* w, void* o){
 
 
 /*Specialise ListDisplay for to display a products list and call product managment commands*/
-void productListCb(IUserInterface *o, int e){
+void productListCb(IUserInterface *o, int e, Winny::UserInputArg* args){
 
   //Note: specialisers don't need to be passed an application object
   //      IUserInterface is enough as they can use it to raise specific
@@ -178,11 +184,11 @@ void productListCb(IUserInterface *o, int e){
     switch(E){
         case FlListDisplay::Query::REFRESH:
         {
-            Winny::UserInputArg args;
-            args.event = CmdUpdateProductsList;
-            //args.sourceInterface = o;
-            args.args = nullptr;
-            o->raiseEvent(CmdUpdateProductsList,&args);
+            //Winny::UserInputArg &args = argz ;
+            args->event = CmdUpdateProductsList;
+            args->sourceInterface = o;
+            args->args = nullptr;
+            o->raiseEvent(CmdUpdateProductsList,args);
         }
         break;
         case FlListDisplay::Query::CREATE:
@@ -191,11 +197,12 @@ void productListCb(IUserInterface *o, int e){
         break;
         case FlListDisplay::Query::SEARCH:
         {
-            Winny::UserInputArg args;
-            args.event = CmdUpdateProductsList;
-            args.sourceInterface = o;
-            args.args = nullptr;
-            o->raiseEvent(CmdUpdateProductsList,&args);
+            //Winny::UserInputArg args;
+            args->event = CmdUpdateProductsList;
+            args->sourceInterface = o;
+            args->args = nullptr;
+            o->raiseEvent(CmdUpdateProductsList,args);
+            //std::cout<<"Original address "<<o<<"\n";
         }
         break;
     }

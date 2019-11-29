@@ -8,6 +8,12 @@
 #include <FWidgetSizes.H>
 #include <FL/fl_ask.H>
 #include <WinnyNames.H>
+#include <IApplicationTypes.H>
+#include <CommBus.H>
+#include <thread>
+#include <iostream>
+
+using Winny::UserInputArg;
 
 //#include <PageNames.H>
 #define WBUFSIZE 125 //Screen Titles shouldn't be more than these characters
@@ -227,7 +233,7 @@ IUserInterface* FlScreen::constructDisplay(Winny::UserIODevName n){
     if (ret){
         log("New Display just created");
         bind(ret,n);
-        ret->Attach(_app_);
+        ret->Attach(this); //subscribe self
         ret->hide();
     }
     //Reset sizes
@@ -270,12 +276,6 @@ const UiStatus FlScreen::status(){
 };
 
 
-void FlScreen::run(){
-    Fl::run();
-};
-
-
-
 
 /*Calls the implementation Window object show()*/
 static bool raisedAlready=false;
@@ -283,7 +283,10 @@ void FlScreen::show(){
     if (!raisedAlready){
        // log("Show Called");
        //fl_alert("About to raise signal");
-        raiseEvent(SigUserIOready,this);
+       args.sourceInterface = this;
+       args.event = SigUserIOready;
+       args.args = this;
+        handle(SigUserIOready,&args);
         raisedAlready = true;
     }
     //application calls writebuffer;
@@ -408,7 +411,7 @@ static void cbGoToPage ( Fl_Widget* w, void* o){
     {
         case FL_TREE_REASON_SELECTED:
             if(itm->user_data())
-                ((IUserInterface*)o)->raiseEvent(CmdNavigateTo,itm->user_data());
+                ((IUserInterface*)o)->handle(CmdNavigateTo,itm->user_data());
             break;
     
         default:
@@ -416,10 +419,44 @@ static void cbGoToPage ( Fl_Widget* w, void* o){
     }
 };
 
+static bool isUserInputWake = false; //we can be awakened by other lib events we not interested in 
+static void* lastEvtArgs;
+static StdSystem::sEvent lastEvt;
 
-
-
- int FlScreen::handle(sEvent,void *eData){
+ int FlScreen::handle(sEvent e,void *eData){
+     isUserInputWake = true;
+     lastEvt = e;
+     lastEvtArgs = eData;
      return 1;
  };
+
+ //adpter function to lower pthread layer interface
+void* pthread_run(void* arg){
+
+    Bus::Message msg;
+    Fl::lock();
+    
+    while(Fl::wait()){
+        if(!isUserInputWake)continue;
+        Winny::UserInputArg* i = (Winny::UserInputArg*)lastEvtArgs;
+        //std::cout<<"Wait returned address is"<<i->sourceInterface<<"\n";
+        msg.sourcePort = StdSystem::UIO_PORT;
+        msg.message = lastEvtArgs; //IUserInterface::args
+        msg.opcode = lastEvt;
+        Bus::sendTo(StdSystem::APP_PORT,msg);
+        isUserInputWake = false;
+    };
+    msg.sourcePort = StdSystem::UIO_PORT;
+    msg.message = nullptr;
+    msg.opcode = SigSHUTDOWN;
+    Bus::sendTo(StdSystem::APP_PORT,msg);
+}
+
+void FlScreen::run(){
+    show();
+    pthread_t id;
+    pthread_create(&id,nullptr,pthread_run,nullptr);  
+    pthread_detach(id);
+};
+
     

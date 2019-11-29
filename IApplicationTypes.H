@@ -18,16 +18,19 @@
 #include <string>
 #include <vector>
 #include <gmdataset.h>
-#include <IUserInterface.h>
 
+#ifndef  MemAddress
+#define MemAddress void*
+#endif
 namespace Winny 
 {
+ //typedef void* MemAddress;
   //using std::string;
 
     /*****ARGUMENT TYPES********/
  struct UserInputArg {
         /*Adress of the IODevice that generated the Input Request*/
-        IUserInterface *sourceInterface;
+         MemAddress sourceInterface;
 
         /*The Event name*/
         int event;

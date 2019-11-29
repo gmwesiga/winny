@@ -44,6 +44,8 @@ class FlScreen : public IScreen, public Fl_Double_Window{
   or even to the application itself, which then routes them to the Iscreen through handle
   in addition to this interface, The static function screen returns a global reference */
     int handle(sEvent,void *eData=nullptr);
+  /**Also to implement aggregation. Flscreen shall pass self to all UI Interfaces it creates*
+   */
     
     private:
     IUserInterface* constructDisplay(Winny::UserIODevName n);

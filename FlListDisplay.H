@@ -13,7 +13,7 @@
 
 using StdSystem::IApplication;
 
-typedef void (*typeHandler)(IUserInterface *a, int event);
+typedef void (*typeHandler)(IUserInterface *a, int event, Winny::UserInputArg*);
 
 
 class FlListDisplay : public IUserInterface , public Fl_Group{
@@ -48,6 +48,7 @@ class FlListDisplay : public IUserInterface , public Fl_Group{
     Winny::QueryCond queryCond;
 };
 
-void productListCb(IUserInterface *o, int e);
+void productListCb(IUserInterface *o, int e, Winny::UserInputArg* argz);
+//this handler must compose the output args to send to the user
 
 #endif
