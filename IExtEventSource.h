@@ -26,6 +26,18 @@ namespace StdSystem {
         //data
         IApplication* application;
     };
+
+
+/**
+ * A user command is represented with a short int, each command has
+ * a unique short assigned to it as defined by the following table
+ */
+#define USERCMD short
+
+/**
+ * This is the list of all user commands and their numeric codes
+ */
+
 #define CmdNavigateTo          0 //0-49 reserved for client related events live navigation
 #define SigUserIOready         1
 #define CmdUpdateProductsList  50

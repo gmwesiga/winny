@@ -1,4 +1,28 @@
-#include "FlScreen.h"
+/** \file
+ * This file contains the definition of the procedures for the operations
+ * specified for an IScreen object. The operations are here defined in
+ * terms of operations on Fl_Window objects, and the rest as listed below
+ */
+#include "IScreen.h"
+
+/** 
+ * A Screen is an External Event Source since it captures mouse and key-
+ * board events
+ */
+#include "IExtEventSource.h"
+
+
+#include <FlCreateProductDisplay.H>
+#include <FlContactsListDisplay.H>
+#include <FlCreateContactDisplay.H>
+#include <FlNotificationDisplay.H>
+#include <FL/Fl.H>
+#include <FL/Fl_Double_Window.H>
+#include <FL/Fl_Box.H>          /**< for labels and backgrounds*/
+#include <FL/Fl_Button.H>       /**< For signout buttons*/
+#include <FL/Fl_PNG_Image.H>    /**< For a menu icon*/
+#include <FL/Fl_Tree.H>         /**< For local navigation*/
+
 #include "FlNavDisplay.h"
 #include <FlListDisplay.H>
 #include <FlOffPremiseSaleUserIO.H>
@@ -10,22 +34,104 @@
 #include <WinnyNames.H>
 #include <IApplicationTypes.H>
 #include <CommBus.H>
-#include <thread>
+#include <pthread.h>
 #include <iostream>
+
+#include <map>      /**< dictionary of function screen pointers*/
+
+#include <IApplicationTypes.H>//UIODNames for bind
+
+using namespace StdSystem;
+
+class FlScreen : public IScreen, public Fl_Double_Window{
+    public:
+    FlScreen();
+    const UiStatus status();
+    void log(string msg);
+    void switchToDisplay(Winny::UserIODevName sn); 
+    UIname id(){return "FlWindow";};
+    void run();
+    int run()
+    void show();
+    void hide();
+    void update();
+    void Attach(StdSystem::IApplication* app);
+    void writeBuff(MemAddress buff);
+    void readBuff(MemAddress buff){buff=nullptr;}
+    int handle(sEvent,void *eData=nullptr);
+    
+    private:
+    IUserInterface* constructDisplay(Winny::UserIODevName n);
+    /*Returns right IUserInterface that implements name n, null pointer on failur*/
+
+    void setUpRole(Winny::Role o);
+    /*Create appropriate Windows etc*/
+
+
+    int bind(IUserInterface* dev,Winny::UserIODevName devId);
+
+    IUserInterface* resolve(Winny::UserIODevName devId);
+    /*Return address/ value of screen Binded to devId or construct
+    / it and bind if not exists. on failure, return null pointer*/
+
+    void addTomenu(IUserInterface* dev,Winny::UserIODevName devId);
+    /*Add dev->id to menu*/
+
+    Fl_Box* scrnResizer;
+    Fl_Box* titleBgBox;
+    Fl_Box* navTitleBgBox;
+    Fl_Box* logo;
+    Fl_Box* titlebox;
+    Fl_Tree* localNav;
+
+    Fl_Menu_Button* switchShopBtn;
+    Fl_Button* logOutBtn;
+    Fl_Box* shopNameLbl;
+    Fl_PNG_Image* _menuicon_;
+    Fl_Menu_Button* menuicon;//the hidden menu button that actually has the menue
+    Fl_Button* fakemenu; //the visible menueicon button
+
+    FlNotificationDisplay *msgs;
+
+    IUserInterface* current;
+    /*address of currently displayed screen. pointer points to element in 
+     *the displays map*/
+
+    std::map<Winny::UserIODevName,IUserInterface*> displays;
+    /*dictonary/list of all screens currently created in memory*/
+
+   // std::vector<Winny::UserIODevName *> menus;
+    /*Stores Winny::UserIODevName of currently created screens*/
+
+    IApplication* _app_;
+
+    IUserInterface *listTransactionDisplayInstance;
+    /*This variable is used to track if a listTransactions Display has already been created
+      the design is such that only one such display exists, and all references point to it
+      initially its false,*/
+}; 
+
 
 using Winny::UserInputArg;
 
-//#include <PageNames.H>
 #define WBUFSIZE 125 //Screen Titles shouldn't be more than these characters
 
 static void cbGoToPage ( Fl_Widget* w, void* o); 
 
 static IScreen* SCREEN = nullptr;
 
-/*constructor initialises base implementation fl_window with design
- *specification height and width*/
-FlScreen::FlScreen(): Fl_Double_Window(SCRN_WIDTH,SCRN_HEIGHT)
-,current(nullptr),listTransactionDisplayInstance(nullptr), msgs(nullptr){
+/**
+ * constructor initialises base implementation fl_window with design 
+ * specification height and width
+ */
+FlScreen::FlScreen()
+    : 
+    Fl_Double_Window(SCRN_WIDTH,SCRN_HEIGHT),
+    current(nullptr),
+    listTransactionDisplayInstance(nullptr), 
+    msgs(nullptr)
+
+{
     SCREEN = this;
     init_ui();
     begin();
@@ -91,9 +197,6 @@ FlScreen::FlScreen(): Fl_Double_Window(SCRN_WIDTH,SCRN_HEIGHT)
     localNav->item_labelsize(WINNY_NORMALTEXT_FONTSIZE);
     localNav->callback(cbGoToPage,(void*)this);
 
-    /*Default display*/
-//   switchToDisplay(Winny::UIOQ_SEARCH_PRODUCTS);
-
     scrnResizer = new Fl_Box(798,520,44,1);
     resizable((Fl_Widget*)scrnResizer);
     //msgs = new FlNotificationDisplay();
@@ -103,14 +206,13 @@ FlScreen::FlScreen(): Fl_Double_Window(SCRN_WIDTH,SCRN_HEIGHT)
 
     end();
 
-
     //fl_alert("we are here");
 };
 
 
 
 IScreen* IScreen::screen(){
-    return SCREEN;
+    return new FlScreen();
 };
 
 

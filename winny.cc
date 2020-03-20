@@ -1,180 +1,200 @@
-#include "IScreen.h"
-#include "IExtEventSource.h"
-#include "FlScreen.h"
-#include <Application.H>
-#include <ServiceManager.H>
-#include <ServiceTypes.H>
-#include <iostream>
-                       
-//#include "FltkFactory.h"
-using namespace StdSystem;
-using Service::ServiceManager;
-using Service::Request;
-using Service::Response;
-using Service::Operation;
+/** \file 
+ * This file contains main. Main expresses the overall 
+ * goal of the program. ie to return  a system response 
+ * back to user for each command they enter on the input.
+ */ 
 
-void testingService(StdSystem::Service::Request& rqst);
-void handleUI(StdSystem::Bus::Message);
-void handleSvc(StdSystem::Address);
-void WINNY();
+#include <Winny.H>
+#include <list>
 
-static FlScreen *ui = nullptr;
-static Winny::AppInfo curStatus;
-int SHUTDOWN_WINNY = 0;
+using Winny::Link;
+using Winny::UI;
+using Winny::ID;
+using Winny::Request;
+using Winny::Response;
+using Winny::REQID;
+using Winny::OK;
+using Winny::NO_WAIT;
+using Winny::TIMEOUT;
+using Winny::ERROR;
+
+/**
+ * Construct, configure and operate components.(discription 
+ * that took me longest to define)
+ * 
+ * Operate UI and for each
+ * command read, return and print its system Response  
+ * Exit if command received is shutdown
+ */ 
+int main();
 
 
-void initialiseSystem(){
+/**
+ * Removes this id form the running Requests table
+ * see addToExecReqsTable
+ * remFromPendingRequestsIs a helper procedure for main.
+ * 
+ * @param reqid the request id to remove from the requests table
+ */
+void eraseFromExecReqsTable(REQID rID);
 
-   //step one Initilise Module objects;
 
-    //allocate UserIO module
-    FlScreen* screen =ui= new FlScreen();
-    screen->run();
-    
-    //allocate DatabaserverIO Object to work as database module
-    Service::ServiceManager::ServiceConfig s = {"",testingService};
-    ServiceManager::start(&s);    
+/**
+ * Add this request id into the running Requests table (ExcReqsTable)
+ * The execReqsTable (Executing Requests Table) records the ids of 
+ * requests whose responses are yet to arrive from the remote server
+ * 
+ * @param reqid the request id to add
+ */
+void addToExecReqsTable(REQID rID);
 
-    //Allocate Application object to work as Application module
-    //and connect the modules together
-    //Application* APP = new Application(screen);
-    WINNY();
 
-    //begin user IO lop
-    //screen->show(); //show after completing setup
-    //screen->run();
-};
+/**
+ * Gets the lengths of the ExecReqsTable which is equal to the number of
+ * all Pending Requests
+ */
+int execReqsTableSize();
+
+
+/**
+ * Try local (not server side) processing of this request, if 
+ * request can not be processed, return error code
+ * 
+ * @param reqAddr contains address of the request object to process
+ * @param respAddr contains address of memory reserved where the
+ * response should be written
+ * @param returnvalue contains an OCC of the operation
+ */
+int tryInternalProc(Request* reqAddr, Response* respAddr);
+
+
+
+/// An Urgent Request is assigned the value 1 in its priority
+/// field.
+#define PRIORITY_URGENT 1
+#define MAX_WAIT_TIME 2.0
+
+/**
+ * shutdown_self is a flag indicating whether to terminate the synchronisation
+ * cycle or to continue it. When a shutdown signal is sent by the user, tryInternalProc
+ * sets this value to true. At the end of each operating cycle, master checks this value
+ * if its true, it exits the operation cycle loop executes the exit routine
+ */
+bool SHUTDOWN_SELF = false;
+
 
 int main(){
-    initialiseSystem();
+    /*construct the UI*/
+    ID id = UI::newInstance();
+
+    /*Configure Link*/
+    Link::setRemoteNodeAddress();
+    
+    /// a single request and a single response are handled at a time
+    /// mem to contain the request object that is readin by io
+    Request request;
+    Response response;
+
+    /// OCC stands for Operation Completion Code
+    /// linkOCC shall be used to store an OCC code of last Link operation
+    int linkOCC = Winny::OK;
+    
+    /// for containing OCC code of last UI operation
+    int uiOCC = Winny::OK;
+    
+
+    /// coordinate and synchronise the modules     
+    while(!SHUTDOWN_SELF){
+
+        /// if we have no pending background requests, lets
+        /// wait for a new request from UI, else, wait only
+        /// for TIMEOUT, so that you can have a chance to check
+        /// link if it has received a new response 
+        if(execReqsTableSize() == 0)
+            uiOCC = UI::run(id,&request,NO_WAIT);
+        
+        else
+            uiOCC = UI::run(id,&request,MAX_WAIT_TIME);
+
+        /// if we got a new request,
+        if(uiOCC==OK){
+            
+            /// record this request in table
+            addToExecReqsTable(request.id());    
+            
+            if(tryInternalProc(&request,&response)==ERROR)
+                Link::sendCommand(&request);
+        }
+
+        /// if this was a priority request, then no need to receive
+        /// another request before giving a response for this one
+        if (request.priority==PRIORITY_URGENT){
+            
+            /// Receive and output all responses that arrive on the link
+            /// untill we get a response of this particular request.
+            do{
+                linkOCC = Link::receiveSystemResponse(&response,0);
+                if(linkOCC==OK)
+                    eraseFromExecReqsTable(response.requestId);
+                
+                UI::writeSystemResponse(id,&response);
+            }while(response.requestId!=request.id());
+  
+        }else { /// PRIORITY_NORMAL
+
+            /// Receieve Whatever Responses arrived on link while we waited
+            /// on usermodule timeout
+            while(Link::receiveSystemResponse(&response,MAX_WAIT_TIME)!=TIMEOUT){
+                eraseFromExecReqsTable(response.requestId);
+                UI::writeSystemResponse(id,&response);
+            }
+        
+        }
+                    
+    }//end of synchronisation cycle     
+
     return 0;
 };
 
 
 
-void WINNY(){
-    do{
-        Bus::Message m = Bus::receiveAt(APP_PORT);
-
-        switch (m.sourcePort)
-        {
-        case UIO_PORT:
-            handleUI(m);
+int tryInternalProc(Request* reqAddr, Response* respAddr){
+    switch (reqAddr->operation){
+        case SigSHUTDOWN:
+            SHUTDOWN_SELF = true;
             break;
-        case SVC_PORT:
-            handleSvc(m.message);
-        default:
-            break;
-        };
-
-    }while (!SHUTDOWN_WINNY);
-};
-
-
-
-//this is a helper to handleUI it helps dispatch UI navigation requests 
-//back to the UI module
-void navigate (Winny::UserIODevName* n){
-    if(ui){
-        Fl::lock();
-        ui->switchToDisplay(*n);
-        Fl::unlock();
     }
 };
 
-//this routine services all UI module requests
-void handleUI(StdSystem::Bus::Message msg){
-        //Winny::UserInputArg *arg= (Winny::UserInputArg*)msg;
-        switch (msg.opcode) {
 
-            case SigUserIOready:
-                curStatus.sessionInfo.currentOpgUnit.name = (char*)"Premium Distributors";//cast constness
-                curStatus.sessionInfo.operatingUnits.push_back({(char*)"Global Distributors",(char*)"Gors"});
-                curStatus.sessionInfo.operatingUnits.push_back({(char*)"Scan Distributors",(char*)"Scrs"});
-                curStatus.sessionInfo.operatingUnits.push_back({(char*)"Scan Distributors",(char*)"Scrs"});
-                curStatus.sessionInfo.role.name = (char*)"Admin";
-                Fl::lock();
-                ui->writeBuff(&curStatus);
-                Fl::unlock();
-            break;
+  
+/** 
+ * storage container of all received Requests that are pending
+ * server Responses if a response comes in, update the list
+ * by removing its matching request fromt the list
+ * 
+ * currently implemented from an std::vector
+ */
+static std::list<REQID> PendingRequests;
 
 
-            case SigSHUTDOWN:
-            {
-                SHUTDOWN_WINNY = 1;
-                break;
-            }
-            case CmdUpdateProductsList:
-            {
-                //std::cout<<"preparing request \n";
-                Request rqst;
-                Winny::UserInputArg *e_arg = (Winny::UserInputArg*)msg.message;//for client
-                rqst.client =(IUserInterface*)(e_arg->sourceInterface);
-                rqst.operation = Operation::GETL_PRODTS;
-                rqst.triggerEvent = msg.opcode;
-                //std::cout<<"client add sent "<<rqst.client<<"\n";
-                rqst.responseBuffer = new Response();
-                //saveRequest(rqst);
-                StdSystem::Bus::sendRequest(rqst);
-            }
-                break;
-
-            case CmdEditProductDetails:
-                Fl::lock();
-                ui->log("CmdEditProductDetails...Delivered");
-                Fl::unlock();
-                break;
-            case CmdNavigateTo:
-                //break;
-                /**By convention, event data is not the source UI, but address to the name of the target UI**/
-                navigate((Winny::UserIODevName*)msg.message);
-                break;
-    /*         case CmdUpdateProductsList:
-                userIO->log("***CmdUpdateProductsList...Delivered");
-                productListUpdate(eData); */
-            break;
-            default:
-                Fl::lock();
-                ui->log("@@@@unkown Command ...Delivered");
-                Fl::unlock();
+void eraseFromExecReqsTable(REQID rID){
+    auto elem = PendingRequests.begin();
+    
+    while (elem != PendingRequests.end()){
+        if(*elem == rID){
+            PendingRequests.erase(elem);
         }
+    }    
 };
 
-void handleSvc(StdSystem::Address msg){
-       // return;
-        
-        Response* rsp = (Response*)msg;
-        
-        int triggerEvent = rsp->request.triggerEvent;
-        //std::cout<<"trigger Event returned is "<<rsp->request.client<<"\n";
-        
-        IUserInterface *userIO = rsp->request.client;
-       // std::cout<<"client add returned is "<<rsp->request.client<<"\n";
-        
-        Winny::UserOutputArg output;
 
-        if(triggerEvent == CmdUpdateProductsList){
-            //prepare search results output
-            output.ok = rsp->ok; 
-            output.message = rsp->message;
-            output.event = triggerEvent;
-            output.args = & (rsp->data);
 
-            //send them to output
-            //std::cout<<"Process response ready, locking interface \n";
-            //return;
-            Fl::lock();
+void addToExecReqsTable(REQID rID){
+    PendingRequests.push_front(rID);
+};
 
-            userIO->writeBuff(&output);
 
-            Fl::unlock();
-            //std::cout<<"processDB done refreshing inteface, unlocked\n";
-
-        }else{
-            //std::cout<<"ProcessDB couldn't match this response to a known event \n";
-        }
-
-        //ALWAYS REMEMBER TO CLEAN MEMORY
-        delete rsp;
-
+int execReqsTableSize(){
+    return PendingRequests.size();
 };

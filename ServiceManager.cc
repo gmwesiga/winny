@@ -1,4 +1,5 @@
 #include <ServiceManager.H>
+#include <pthread.h>
 
 using namespace StdSystem::Service;
 static void* pthreadServerFunc(void* arg);

@@ -1,3 +1,14 @@
+/** \file
+ * A ListDisplay is an abstract communication medium between an scoperator
+ * module and a user.
+ * 
+ * To the scoperator module, a listDisplay takes a dataset object specified
+ * located at a mem address and outputs it to a user's display in a pre-
+ * agreed diplay layout. This is it's output operation. for its input operation
+ * it takes a query object-sized memory where it writes out a query object
+ * specified by a user in its input textboxs
+ */
+
 #ifndef FLISTDISPLAY_H
 #define FLISTDISPLAY_H
 

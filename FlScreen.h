@@ -31,6 +31,17 @@ class FlScreen : public IScreen, public Fl_Double_Window{
     
     UIname id(){return "FlWindow";};
     void run();
+
+    /**
+     * Run for specified duration or until user requests an operation
+     * write out the requested operation in, and the specified arguments 
+     * if any
+     * 
+     * @param[out] ReqOper The operation that was requested by user if
+     * any (OCC is positive interger)
+     * @param[in:out] ReaOperArgs The arguments to the requested operation
+     */
+    int run()
     void show();
     void hide();
    // int handle(int e);//override so we can tap the Show/ load event

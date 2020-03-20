@@ -169,6 +169,7 @@ int Bus::sendTo(BusPort pt, Bus::Message msg)
     //insert msg to port receive queue
     targetBuff->push(msg);
     //std::cout<<"request pushed with trigger "<<rqst.triggerEvent<<"\n";
+    
     //release the lock
     pthread_mutex_unlock(targetLock);
 
@@ -197,14 +198,17 @@ Bus::Message Bus::receiveAt(StdSystem::BusPort prt){
     //wait untill there is a request in queue
     //std::unique_lock<std::mutex> lock(queueLock);
     pthread_mutex_lock(targetLock);
+    
     //wait for process to add request in queue
     while(targetBuff->size()<=0){
         //std::cout<<"Server found nothing in queue, going to sleep\n";
+        
         //release lock and wait for producer thread to add a msg
         //.wait(lock);
         pthread_cond_wait(targetCond,targetLock);
     }
     //if here, application added request and called us,
+    
     //wait acquired lock for use, so we have lock 
     //get request
     msg = targetBuff->front();
